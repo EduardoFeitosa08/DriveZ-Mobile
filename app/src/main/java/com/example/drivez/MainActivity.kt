@@ -11,19 +11,28 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import com.example.drivez.ui.theme.DriveZTheme
 import androidx.core.graphics.toColorInt
 import com.example.drivez.components.CampoDigitar
+import com.example.drivez.components.TituloCampo
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,9 +64,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             DriveZTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    LoginScreen(
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    CadastroScreen()
                 }
             }
         }
@@ -92,7 +100,9 @@ fun LoginScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFE8E8E8)),
+            .background(Color(0xFFE8E8E8))
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 30.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Image(
@@ -131,6 +141,7 @@ fun LoginScreen(modifier: Modifier = Modifier) {
                     text = "Entrar",
                     fontSize = 24.sp,
                     fontFamily = fontFamily,
+                    fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
             }
@@ -154,5 +165,269 @@ fun LoginScreen(modifier: Modifier = Modifier) {
             )
 
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CadastroScreen() {
+    var senhaStrength by remember { mutableStateOf("Senha fraca") }
+
+    var cadastroUserClient by remember { mutableStateOf(true) }
+    var cadastroUserPrestador by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .verticalScroll(rememberScrollState())
+            .padding(start = 25.dp, end = 25.dp, top = 30.dp, bottom = 80.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        TopAppBar(
+            title = { Text("Título da Tela") },
+            navigationIcon = {
+                //Botao de voltar
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier
+                        .size(50.dp)
+                        .padding(start = 15.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_arrow_back_24),
+                        contentDescription = "Voltar",
+                        tint = Color(0xFF1B2D45),
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                titleContentColor = MaterialTheme.colorScheme.primary,
+            )
+        )
+
+        Text(
+            text = "Cadastro",
+            fontWeight = FontWeight.Bold,
+            fontFamily = fontFamily,
+            fontSize = 30.sp,
+            color = Color(0xFF1B2D45),
+            modifier = Modifier
+                .padding(start = 15.dp)
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+                .border(1.dp, Color(0xFFC52F3E), RoundedCornerShape(20.dp))
+        ) {
+            Button(
+                onClick = {
+                    cadastroUserClient = true
+                    cadastroUserPrestador = false
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)),
+                shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if(cadastroUserClient) Color(0xFFF13132) else Color.White,
+                    contentColor = if (cadastroUserClient) Color.White else Color(0xFF1B2D45)
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Sou Cliente",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = fontFamily,
+                        color = if (cadastroUserClient) Color.White else Color(0xFF1B2D45)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Pessoas que necessitam ajuda",
+                        fontSize = 14.sp,
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = if (cadastroUserClient) Color.White else Color(0xFF1B2D45),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+            Button(
+                onClick = {
+                    cadastroUserPrestador = true
+                    cadastroUserClient = false
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp)),
+                shape = RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if(cadastroUserPrestador) Color(0xFFF13132) else Color.White,
+                    contentColor = if (cadastroUserPrestador) Color.White else Color(0xFF1B2D45)
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Sou Prestador",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = fontFamily,
+                        color = if (cadastroUserPrestador) Color.White else Color(0xFF1B2D45)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Prestadores de serviço",
+                        fontSize = 14.sp,
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = if (cadastroUserPrestador) Color.White else Color(0xFF1B2D45),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+
+        if (cadastroUserClient && !cadastroUserPrestador){
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+
+                TituloCampo("Nome Completo")
+                CampoDigitar(campoNome = "Nome Completo", placeholder = "Digite seu nome completo")
+
+                TituloCampo("Email")
+                CampoDigitar(campoNome = "Email", placeholder = "exemplo@gmail.com")
+
+                TituloCampo("Criação de Senha")
+                CampoDigitar(campoNome = "Criação da senha", placeholder = "Senha", painter = painterResource(R.drawable.baseline_lock_24), painterTransform = painterResource(R.drawable.baseline_remove_red_eye_24))
+
+                Text(
+                    //Validar o estilo da senha
+                    text = senhaStrength,
+                    fontFamily = fontFamily,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFF0A0A),
+                    modifier = Modifier
+                        .padding(start = 15.dp)
+                )
+
+                CampoDigitar(campoNome = "Confirmação da Senha")
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Button(
+                    onClick = {TODO()},
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .clip(RoundedCornerShape(15.dp)),
+                    shape = RoundedCornerShape(15.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD53035),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = "Entrar",
+                        fontSize = 24.sp,
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+
+        }else{
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = "Torne-se um parceiro da DriveZ!",
+                    fontFamily = fontFamily,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1B2D45),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+
+                    )
+
+                Text(
+                    text = "Alcance mais clientes e gerencie suas viagens.",
+                    fontFamily = fontFamily,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1B2D45),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+
+                TituloCampo("Nome Completo")
+                CampoDigitar(campoNome = "Nome Completo", placeholder = "Digite seu nome completo")
+
+                TituloCampo("Email")
+                CampoDigitar(campoNome = "Email", placeholder = "exemplo@gmail.com")
+
+                TituloCampo("Criação de Senha")
+                CampoDigitar(campoNome = "Criação da senha", placeholder = "Senha", painter = painterResource(R.drawable.baseline_lock_24), painterTransform = painterResource(R.drawable.baseline_remove_red_eye_24))
+
+                Text(
+                    //Validar o estilo da senha
+                    text = senhaStrength,
+                    fontFamily = fontFamily,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFF0A0A),
+                    modifier = Modifier
+                        .padding(start = 15.dp)
+                )
+
+                CampoDigitar(campoNome = "Confirme a Senha")
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Button(
+                    onClick = {TODO()},
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .clip(RoundedCornerShape(15.dp)),
+                    shape = RoundedCornerShape(15.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD53035),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = "Entrar",
+                        fontSize = 24.sp,
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+
+        }
+
     }
 }
