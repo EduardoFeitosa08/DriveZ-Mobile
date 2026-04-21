@@ -57,4 +57,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation("androidx.compose.ui:ui-text-google-fonts:1.10.5")
+    implementation("androidx.navigation:navigation-compose:2.8.0")
 }
