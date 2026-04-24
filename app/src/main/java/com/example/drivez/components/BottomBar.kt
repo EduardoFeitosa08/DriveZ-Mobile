@@ -11,12 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -26,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -35,12 +31,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.drivez.R
 import com.example.drivez.fontFamily
-import com.example.drivez.model.BottomNavItem
+import com.example.drivez.data.model.BottomNavItem
 
 @Composable
 fun BottomClienteBar(navController: NavController) {
@@ -51,7 +46,7 @@ fun BottomClienteBar(navController: NavController) {
     val items = listOf(
         BottomNavItem("home/cliente", R.drawable.baseline_home_24, "Home"),
         BottomNavItem("contatos", R.drawable.baseline_chat_bubble_24, "Chat"),
-        BottomNavItem("historico", R.drawable.baseline_history_24, "Histórico"),
+        BottomNavItem("home/cliente/historico", R.drawable.baseline_history_24, "Histórico"),
         BottomNavItem("perfil", R.drawable.baseline_person_24, "Perfil")
     )
 
@@ -94,7 +89,9 @@ fun BottomClienteBar(navController: NavController) {
 
                     NavigationBarItem(
                         selected = rotaAtual == item.route,
-                        onClick = {},
+                        onClick = {
+                            navController.navigate("${item.route}")
+                        },
                         icon = {
                             Icon(
                                 painter = painterResource(item.icon),
