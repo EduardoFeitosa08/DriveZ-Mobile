@@ -38,14 +38,14 @@ import com.example.drivez.fontFamily
 import com.example.drivez.data.model.BottomNavItem
 
 @Composable
-fun BottomClienteBar(navController: NavController) {
+fun BottomClienteBar(navController: NavController, shadow: Boolean = true) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val rotaAtual = navBackStackEntry?.destination?.route
 
     val items = listOf(
         BottomNavItem("home/cliente", R.drawable.baseline_home_24, "Home"),
-        BottomNavItem("contatos", R.drawable.baseline_chat_bubble_24, "Chat"),
+        BottomNavItem("home/cliente/contatos", R.drawable.baseline_chat_bubble_24, "Chat"),
         BottomNavItem("home/cliente/historico", R.drawable.baseline_history_24, "Histórico"),
         BottomNavItem("perfil", R.drawable.baseline_person_24, "Perfil")
     )
@@ -63,18 +63,20 @@ fun BottomClienteBar(navController: NavController) {
                 .fillMaxWidth()
                 .height(165.dp)
                 .drawBehind {
-                    val shadowColor = Color.Black.copy(alpha = 0.3f)
-                    val shadowHeight = 8.dp.toPx()
+                    if(shadow){
+                        val shadowColor = Color.Black.copy(alpha = 0.3f)
+                        val shadowHeight = 8.dp.toPx()
 
-                    drawRect(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(shadowColor, Color.Transparent),
-                            startY = -shadowHeight,
-                            endY = 0f
-                        ),
-                        topLeft = Offset(0f, -shadowHeight),
-                        size = Size(size.width, shadowHeight)
-                    )
+                        drawRect(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(shadowColor, Color.Transparent),
+                                startY = -shadowHeight,
+                                endY = 0f
+                            ),
+                            topLeft = Offset(0f, -shadowHeight),
+                            size = Size(size.width, shadowHeight)
+                        )
+                    }
                 }
         ) {
             Row(

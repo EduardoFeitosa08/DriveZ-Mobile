@@ -11,6 +11,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +19,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -76,14 +78,21 @@ import com.example.drivez.components.AplicationTopBar
 import com.example.drivez.components.Avaliacao
 import com.example.drivez.components.BottomClienteBar
 import com.example.drivez.components.CampoDigitar
+import com.example.drivez.components.CardContato
 import com.example.drivez.components.TituloCampo
 import com.example.drivez.data.model.Categoria
+import com.example.drivez.data.model.Contato
 import com.example.drivez.data.model.Pedido
 import com.example.drivez.data.model.Prestador
 import com.example.drivez.data.model.StatusPedido
+import com.example.drivez.ui.theme.AppColors
 import com.example.drivez.util.FormatarData
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
+
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -115,6 +124,9 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("home/cliente/historico"){
                             RegistroDePedidosScreen(navController = navController)
+                        }
+                        composable("home/cliente/contatos") {
+                            ContatosScreen(navController = navController)
                         }
 
                     }
@@ -152,7 +164,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
             modifier = modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .background(Color(0xFFE8E8E8))
+                .background(AppColors.BackgroundGray)
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 30.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -188,7 +200,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
                         .clip(RoundedCornerShape(15.dp)),
                     shape = RoundedCornerShape(15.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFD53035),
+                        containerColor = AppColors.PrimaryRed,
                         contentColor = Color.White
                     )
                 ) {
@@ -205,7 +217,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
                     text = "Esqueceu a senha?",
                     fontSize = 14.sp,
                     fontFamily = fontFamily,
-                    color = Color(0xFF1B2D45),
+                    color = AppColors.DarkBlue,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.End
                 )
@@ -214,7 +226,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
                     text = "Ainda não tem conta? Cadastre-se",
                     fontSize = 18.sp,
                     fontFamily = fontFamily,
-                    color = Color(0xFF1B2D45),
+                    color = AppColors.DarkBlue,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
@@ -239,21 +251,6 @@ fun CadastroScreen(navController: NavController) {
     Scaffold(
         containerColor = Color.White,
         topBar = {
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(top = 16.dp, bottom = 16.dp, start = 25.dp, end = 16.dp),
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                IconButton(onClick = { navController.popBackStack() }) {
-//                    Icon(
-//                        painter = painterResource(R.drawable.baseline_arrow_back_24),
-//                        contentDescription = "Voltar",
-//                        tint = Color(0xFF1B2D45),
-//                        modifier = Modifier.size(40.dp)
-//                    )
-//                }
-//            }
             AplicationTopBar(navController = navController)
         }
     ) { paddingValues ->
@@ -272,7 +269,7 @@ fun CadastroScreen(navController: NavController) {
                 fontWeight = FontWeight.Bold,
                 fontFamily = fontFamily,
                 fontSize = 30.sp,
-                color = Color(0xFF1B2D45),
+                color = AppColors.DarkBlue,
                 modifier = Modifier
                     .padding(start = 15.dp)
             )
@@ -281,7 +278,7 @@ fun CadastroScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
-                    .border(1.dp, Color(0xFFC52F3E), RoundedCornerShape(20.dp))
+                    .border(1.dp, AppColors.SecondaryRed, RoundedCornerShape(20.dp))
             ) {
                 Button(
                     onClick = {
@@ -293,8 +290,8 @@ fun CadastroScreen(navController: NavController) {
                         .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)),
                     shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if(cadastroUserClient) Color(0xFFF13132) else Color.White,
-                        contentColor = if (cadastroUserClient) Color.White else Color(0xFF1B2D45)
+                        containerColor = if(cadastroUserClient) AppColors.HighlightRed else Color.White,
+                        contentColor = if (cadastroUserClient) Color.White else AppColors.DarkBlue
                     )
                 ) {
                     Column(
@@ -308,7 +305,7 @@ fun CadastroScreen(navController: NavController) {
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = fontFamily,
-                            color = if (cadastroUserClient) Color.White else Color(0xFF1B2D45)
+                            color = if (cadastroUserClient) Color.White else AppColors.DarkBlue
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
@@ -316,7 +313,7 @@ fun CadastroScreen(navController: NavController) {
                             fontSize = 14.sp,
                             fontFamily = fontFamily,
                             fontWeight = FontWeight.Bold,
-                            color = if (cadastroUserClient) Color.White else Color(0xFF1B2D45),
+                            color = if (cadastroUserClient) Color.White else AppColors.DarkBlue,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -331,8 +328,8 @@ fun CadastroScreen(navController: NavController) {
                         .clip(RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp)),
                     shape = RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if(cadastroUserPrestador) Color(0xFFF13132) else Color.White,
-                        contentColor = if (cadastroUserPrestador) Color.White else Color(0xFF1B2D45)
+                        containerColor = if(cadastroUserPrestador) AppColors.HighlightRed else Color.White,
+                        contentColor = if (cadastroUserPrestador) Color.White else AppColors.DarkBlue
                     )
                 ) {
                     Column(
@@ -346,7 +343,7 @@ fun CadastroScreen(navController: NavController) {
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = fontFamily,
-                            color = if (cadastroUserPrestador) Color.White else Color(0xFF1B2D45),
+                            color = if (cadastroUserPrestador) Color.White else AppColors.DarkBlue,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(10.dp))
@@ -355,7 +352,7 @@ fun CadastroScreen(navController: NavController) {
                             fontSize = 14.sp,
                             fontFamily = fontFamily,
                             fontWeight = FontWeight.Bold,
-                            color = if (cadastroUserPrestador) Color.White else Color(0xFF1B2D45),
+                            color = if (cadastroUserPrestador) Color.White else AppColors.DarkBlue,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -384,7 +381,7 @@ fun CadastroScreen(navController: NavController) {
                         fontFamily = fontFamily,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFFF0A0A),
+                        color = AppColors.ErrorRed,
                         modifier = Modifier
                             .padding(start = 15.dp)
                     )
@@ -401,7 +398,7 @@ fun CadastroScreen(navController: NavController) {
                             .clip(RoundedCornerShape(15.dp)),
                         shape = RoundedCornerShape(15.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFD53035),
+                            containerColor = AppColors.PrimaryRed,
                             contentColor = Color.White
                         )
                     ) {
@@ -425,7 +422,7 @@ fun CadastroScreen(navController: NavController) {
                         fontFamily = fontFamily,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1B2D45),
+                        color = AppColors.DarkBlue,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
 
@@ -436,7 +433,7 @@ fun CadastroScreen(navController: NavController) {
                         fontFamily = fontFamily,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1B2D45),
+                        color = AppColors.DarkBlue,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
@@ -456,7 +453,7 @@ fun CadastroScreen(navController: NavController) {
                         fontFamily = fontFamily,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFFF0A0A),
+                        color = AppColors.ErrorRed,
                         modifier = Modifier
                             .padding(start = 15.dp)
                     )
@@ -473,7 +470,7 @@ fun CadastroScreen(navController: NavController) {
                             .clip(RoundedCornerShape(15.dp)),
                         shape = RoundedCornerShape(15.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFD53035),
+                            containerColor = AppColors.PrimaryRed,
                             contentColor = Color.White
                         )
                     ) {
@@ -601,7 +598,7 @@ fun HomeClienteScreen(navController: NavController) {
                         .padding(top = 8.dp),
                     shape = RoundedCornerShape(15.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFC52F3E),
+                        containerColor = AppColors.SecondaryRed,
                         contentColor = Color.White
                     )
                 ) {
@@ -643,7 +640,7 @@ fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navContro
 
     Card(
         modifier = modifier
-            .border(1.dp, Color(0xFF1B2D45), RoundedCornerShape(15.dp))
+            .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(15.dp))
             .clickable {
                 navController.navigate("home/cliente/servico/${prestador.id}")
             },
@@ -651,7 +648,7 @@ fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navContro
             defaultElevation = 6.dp,
         ),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFAFAFA)
+            containerColor = AppColors.CardBackground
         ),
         shape = RoundedCornerShape(15.dp)
     ) {
@@ -665,7 +662,7 @@ fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navContro
                 contentDescription = "Prestador",
                 modifier = Modifier
                     .size(70.dp)
-                    .border(1.dp, Color(0xFF1B2D45), RoundedCornerShape(100))
+                    .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100))
             )
             Spacer(modifier = Modifier.width(20.dp))
             Column(
@@ -677,7 +674,7 @@ fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navContro
                     fontFamily = fontFamily,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = Color(0xFFC52F3E)
+                    color = AppColors.SecondaryRed
                 )
                 Row(
                     modifier = Modifier
@@ -713,7 +710,7 @@ fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navContro
                         Row(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(10.dp))
-                                .border(1.dp, Color(0xFFAEAEAE), RoundedCornerShape(10.dp))
+                                .border(1.dp, AppColors.BorderGray, RoundedCornerShape(10.dp))
                         ) {
                             Text(
                                 text = item.nome,
@@ -732,7 +729,6 @@ fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navContro
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServicoScreen(navController: NavController, prestadorId: String) {
 
@@ -763,7 +759,7 @@ fun ServicoScreen(navController: NavController, prestadorId: String) {
                 contentDescription = "Prestador",
                 modifier = Modifier
                     .size(150.dp)
-                    .border(1.dp, Color(0xFF1B2D45), RoundedCornerShape(100))
+                    .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100))
             )
 
             Avaliacao(prestadorTeste.avaliacao, 34.dp, 3.dp)
@@ -792,8 +788,8 @@ fun ServicoScreen(navController: NavController, prestadorId: String) {
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
-                            .border(1.dp, Color(0xFF1B2D45), RoundedCornerShape(10.dp))
-                            .background(Color(0xFF1B2D45))
+                            .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(10.dp))
+                            .background(AppColors.DarkBlue)
                             .height(60.dp)
                             .padding(horizontal = 10.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -824,7 +820,7 @@ fun ServicoScreen(navController: NavController, prestadorId: String) {
                     .height(100.dp)
                     .padding(horizontal = 10.dp, vertical = 15.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFC52F3E),
+                    containerColor = AppColors.SecondaryRed,
                     contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(10.dp)
@@ -849,7 +845,6 @@ fun ServicoScreen(navController: NavController, prestadorId: String) {
     }
 }
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun RegistroDePedidosScreen(navController: NavController) {
@@ -865,7 +860,10 @@ fun RegistroDePedidosScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            AplicationTopBar(navController = navController, titulo = "Registro de Pedidos")
+            AplicationTopBar(navController = navController, titulo = "Registro de Pedidos", retornavel = false)
+        },
+        bottomBar = {
+            BottomClienteBar(navController = navController, shadow = false)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -889,106 +887,219 @@ fun CardHistoricoPedido(pedido: Pedido, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 15.dp, horizontal = 15.dp)
+            .border(1.dp, Color.Black, RoundedCornerShape(15.dp)),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF5F5F5),
+            contentColor = Color.Black
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp,
+        )
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = FormatarData(pedido.dataSolicitacao),
-                fontFamily = fontFamily,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 10.dp, horizontal = 15.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .padding(vertical = 30.dp)
         ) {
-            Text(
-                text = "Origem",
-                fontFamily = fontFamily,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(15.dp),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(10.dp)
-                        .clip(CircleShape)
-                        .background(Color.Black)
-                )
                 Text(
-                    text = pedido.enderecoOrigem,
+                    text = FormatarData(pedido.dataSolicitacao),
                     fontFamily = fontFamily,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.ExtraBold,
                 )
             }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 20.dp)
+                    .border(1.dp, Color.Black, RoundedCornerShape(15.dp)),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 15.dp, end = 15.dp, top = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(15.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.outline_arrow_downward_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(30.dp)
+                            .height(40.dp),
+//                    .align(Alignment.CenterHorizontally)
+                        tint = Color.Transparent
+                    )
+                    Text(
+                        text = "Origem",
+                        fontFamily = fontFamily,
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 15.dp),
+                    horizontalArrangement = Arrangement.spacedBy(15.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(Color.Black)
+                    )
+                    Text(
+                        text = pedido.enderecoOrigem,
+                        fontFamily = fontFamily,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 15.dp),
+                    horizontalArrangement = Arrangement.spacedBy(15.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.outline_arrow_downward_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(30.dp)
+                            .height(40.dp)
+//                    .align(Alignment.CenterHorizontally)
+                    )
+                    Text(
+                        text = "Destino",
+                        fontFamily = fontFamily,
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 15.dp, end = 15.dp, bottom = 25.dp),
+                    horizontalArrangement = Arrangement.spacedBy(15.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(Color.Black)
+                    )
+                    Text(
+                        text = pedido.enderecoDestino,
+                        fontFamily = fontFamily,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(15.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 15.dp, vertical = 15.dp),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.outline_arrow_downward_24),
-                    contentDescription = null,
-                    modifier = Modifier.width(30.dp).height(40.dp)
-//                    .align(Alignment.CenterHorizontally)
-                )
-                Text(
-                    text = "Origem",
-                    fontFamily = fontFamily,
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(15.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
+                    painter = painterResource(R.drawable.baseline_person_24),
+                    contentDescription = "Prestador",
                     modifier = Modifier
-                        .size(10.dp)
-                        .clip(CircleShape)
-                        .background(Color.Black)
+                        .size(40.dp)
+                        .border(1.dp, Color.Black, RoundedCornerShape(100))
                 )
+                Spacer(modifier = Modifier.width(15.dp))
                 Text(
-                    text = pedido.enderecoDestino,
+                    text = "Prestador: Carlos Oliveira",
                     fontFamily = fontFamily,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                 )
             }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth()
-                .padding(horizontal = 15.dp, vertical = 15.dp),
-            horizontalArrangement = Arrangement.spacedBy(15.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.baseline_person_24),
-                contentDescription = "Prestador",
-                modifier = Modifier
-                    .size(40.dp)
-                    .border(1.dp, Color.Black, RoundedCornerShape(100))
-            )
-            Text(
-                text = "Prestador: Carlos Oliveira",
-                fontFamily = fontFamily,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
 
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ContatosScreen(navController: NavController) {
+
+    val listaDeContatos = listOf(
+        Contato(
+            id = "1",
+            name = "Rimberio - Guincho",
+            ultimaMensagem = "Estou chegando na sua localização.",
+            perfilImgUrl = "https://i.pravatar.cc/150?u=1"
+        ),
+        Contato(
+            id = "2",
+            name = "Lojão das Baterias",
+            ultimaMensagem = "A peça que você solicitou já está disponível.",
+            perfilImgUrl = "https://i.pravatar.cc/150?u=2"
+        ),
+        Contato(
+            id = "3",
+            name = "Brand - Borracheiro",
+            ultimaMensagem = "Pode trazer o veículo, estou livre.",
+            perfilImgUrl = "https://i.pravatar.cc/150?u=3"
+        ),
+        Contato(
+            id = "4",
+            name = "Auto Repair - Mecanico",
+            ultimaMensagem = "O diagnóstico ficou pronto, confira o valor.",
+            perfilImgUrl = "https://i.pravatar.cc/150?u=4"
+        ),
+        Contato(
+            id = "5",
+            name = "Silva - Eletricista",
+            ultimaMensagem = "Preciso de mais detalhes sobre o problema.",
+            perfilImgUrl = "https://i.pravatar.cc/150?u=5"
+        ),
+        Contato(
+            id = "6",
+            name = "Santos - Funileiro",
+            ultimaMensagem = "Podemos agendar para amanhã?",
+            perfilImgUrl = "https://i.pravatar.cc/150?u=6"
+        )
+    )
+
+    val listState = rememberLazyListState()
+
+    Scaffold(
+        topBar = {
+            AplicationTopBar(navController = navController, titulo = "Contatos", retornavel = false, backgroundColor = AppColors.PrimaryRed,
+                textColor = AppColors.TextWhite, iconColor = AppColors.TextWhite)
+        },
+        bottomBar = {
+            BottomClienteBar(navController = navController, shadow = false)
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ){
+            LazyColumn(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(horizontal = 15.dp, vertical = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                items(listaDeContatos){
+                    CardContato(it)
+                }
+            }
+        }
     }
 }

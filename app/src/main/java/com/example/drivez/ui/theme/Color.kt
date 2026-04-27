@@ -11,4 +11,7 @@ object AppColors {
     val ErrorRed = Color(0xFFFF0A0A)
     val CardBackground = Color(0xFFFAFAFA)
     val BorderGray = Color(0xFFAEAEAE)
+    val TitleGray = Color(0xFF3E3F3F)
+    val PlaceholderGray = Color(0xFFA1A1A1)
+    val TextWhite = Color(0xFFFFFFFF)
 }
