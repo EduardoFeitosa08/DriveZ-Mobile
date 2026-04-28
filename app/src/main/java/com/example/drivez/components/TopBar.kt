@@ -70,39 +70,86 @@ fun AplicationTopBar(navController: NavController, titulo: String = "", retornav
         )
     }else{
         if(retornavel){
-            TopAppBar(
-                title = {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp, bottom = 16.dp, start = 15.dp, end = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(15.dp)
-                    ) {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                painter = painterResource(R.drawable.baseline_arrow_back_24),
-                                contentDescription = "Voltar",
-                                tint = iconColor,
-                                modifier = Modifier.size(40.dp)
+            if(titulo == "Meu Perfil"){
+                TopAppBar(
+                    title = {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp, bottom = 16.dp, start = 15.dp, end = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(15.dp)
+                        ) {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.baseline_arrow_back_24),
+                                    contentDescription = "Voltar",
+                                    tint = iconColor,
+                                    modifier = Modifier.size(40.dp)
+                                )
+                            }
+
+                            Text(
+                                text = titulo,
+                                fontFamily = fontFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 28.sp,
+                                color = textColor,
+                                modifier = Modifier
+                                    .weight(1f)
+                            )
+
+                            IconButton(onClick = { }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.garage),
+                                    contentDescription = "Garagem Virtual",
+                                    tint = iconColor,
+                                    modifier = Modifier.size(40.dp)
+                                        .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100))
+                                        .padding(1.dp)
+                                )
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = backgroundColor
+                    )
+                )
+            }else{
+                TopAppBar(
+                    title = {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp, bottom = 16.dp, start = 15.dp, end = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(15.dp)
+                        ) {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.baseline_arrow_back_24),
+                                    contentDescription = "Voltar",
+                                    tint = iconColor,
+                                    modifier = Modifier.size(40.dp)
+                                )
+                            }
+
+                            Text(
+                                text = titulo,
+                                fontFamily = fontFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 28.sp,
+                                color = textColor,
+                                modifier = Modifier
+                                    .weight(1f)
                             )
                         }
-
-                        Text(
-                            text = titulo,
-                            fontFamily = fontFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 28.sp,
-                            color = textColor,
-                            modifier = Modifier
-                                .weight(1f)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = backgroundColor
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = backgroundColor
+                    )
                 )
-            )
+            }
         }else{
             if(titulo == "Contatos"){
                 TopAppBar(

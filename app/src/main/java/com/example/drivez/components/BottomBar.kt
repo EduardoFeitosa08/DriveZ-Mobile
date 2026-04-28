@@ -43,11 +43,14 @@ fun BottomClienteBar(navController: NavController, shadow: Boolean = true) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val rotaAtual = navBackStackEntry?.destination?.route
 
+    //Enquanto não ter o login e o id do Usuario API
+    var clienteId = 1
+
     val items = listOf(
         BottomNavItem("home/cliente", R.drawable.baseline_home_24, "Home"),
         BottomNavItem("home/cliente/contatos", R.drawable.baseline_chat_bubble_24, "Chat"),
         BottomNavItem("home/cliente/historico", R.drawable.baseline_history_24, "Histórico"),
-        BottomNavItem("perfil", R.drawable.baseline_person_24, "Perfil")
+        BottomNavItem("home/cliente/perfil/${clienteId}", R.drawable.baseline_person_24, "Perfil")
     )
 
     Box(

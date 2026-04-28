@@ -25,12 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.drivez.R
 import com.example.drivez.fontFamily
+import com.example.drivez.ui.theme.AppColors
 
 @Composable
 fun CampoDigitar(campoNome: String, placeholder: String = "", valorPadrao: String = "",
-                 painter: Painter? = null,
-                 painterTransform: Painter? = null,
-                 alteravel: Boolean = true) {
+                 painter: Painter? = null, painterTransform: Painter? = null,
+                 alteravel: Boolean = true, iconFim: Boolean = true) {
     var campoState by remember { mutableStateOf(valorPadrao) }
 
     var iconState by remember { mutableStateOf(false) }
@@ -42,6 +42,7 @@ fun CampoDigitar(campoNome: String, placeholder: String = "", valorPadrao: Strin
             .fillMaxWidth()
             .height(60.dp)
             .border(1.dp, Color(0XFF6D6D6D), RoundedCornerShape(15.dp)),
+        readOnly = !alteravel,
         placeholder = {
             Text(
                 text = if(placeholder == "") campoNome else placeholder,
@@ -52,7 +53,7 @@ fun CampoDigitar(campoNome: String, placeholder: String = "", valorPadrao: Strin
             )
         },
         shape = RoundedCornerShape(15.dp),
-        trailingIcon = if (painter != null && painterTransform != null){
+        trailingIcon = if (painter != null && painterTransform != null && iconFim){
             {
                 IconButton(
                     onClick = {
@@ -73,16 +74,28 @@ fun CampoDigitar(campoNome: String, placeholder: String = "", valorPadrao: Strin
                 }
             }
         }else null,
+        leadingIcon = if (painter != null && painterTransform != null && !iconFim){
+            {
+                Icon(
+                    painter = if(iconState) painterTransform else painter,
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(25.dp),
+                    tint = Color(0XFF6D6D6D)
+                )
+
+            }
+        }else null,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color(0XFFD53035),
-            unfocusedBorderColor = Color(0XFF6D6D6D),
-            focusedLabelColor = Color(0XFF6D6D6D),
-            unfocusedLabelColor = Color(0XFF6D6D6D),
-            focusedPlaceholderColor = Color(0XFFD53035),
-            unfocusedPlaceholderColor = Color(0XFF6D6D6D),
+            focusedBorderColor = AppColors.SecondaryRed,
+            unfocusedBorderColor = AppColors.BorderGray,
+            focusedLabelColor = AppColors.SecondaryRed,
+            unfocusedLabelColor = AppColors.PlaceholderGray,
+            focusedPlaceholderColor = AppColors.SecondaryRed,
+            unfocusedPlaceholderColor = AppColors.PlaceholderGray,
             disabledContainerColor = Color.White,
-            focusedTextColor = Color(0xFF1B2D45),
-            unfocusedTextColor = Color(0xFF1B2D45),
+            focusedTextColor = AppColors.DarkBlue,
+            unfocusedTextColor = AppColors.DarkBlue,
             unfocusedContainerColor = if(campoState != "") Color(0xFFE6EEF8) else Color.White,
             focusedContainerColor = Color.White
         ),

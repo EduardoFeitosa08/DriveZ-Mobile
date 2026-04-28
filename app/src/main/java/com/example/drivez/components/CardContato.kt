@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.example.drivez.R
 import com.example.drivez.data.model.Contato
 import com.example.drivez.fontFamily
@@ -33,7 +34,7 @@ fun CardContato(contato: Contato) {
             .fillMaxWidth()
             .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(15.dp)),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp
+            defaultElevation = 10.dp
         ),
         colors = CardDefaults.cardColors(
             containerColor = AppColors.CardBackground
@@ -46,13 +47,22 @@ fun CardContato(contato: Contato) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Icon(
-                painter = painterResource(R.drawable.baseline_person_24),
+            AsyncImage(
+                model = "${contato.perfilImgUrl}",
+                placeholder = painterResource(R.drawable.baseline_person_24),
+                error = painterResource(R.drawable.baseline_person_24),
                 contentDescription = null,
                 modifier = Modifier
                     .size(70.dp)
                     .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100)),
             )
+//            Icon(
+//                painter = painterResource(R.drawable.baseline_person_24),
+//                contentDescription = null,
+//                modifier = Modifier
+//                    .size(70.dp)
+//                    .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100)),
+//            )
 
             Column(
                 modifier = Modifier

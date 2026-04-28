@@ -7,5 +7,5 @@ data class Contato(
     val id: String,
     val name: String,
     val ultimaMensagem: String,
-    val perfilImgUrl: String,
+    val perfilImgUrl: String? = null,
 )

@@ -19,7 +19,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -59,12 +58,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.drivez.ui.theme.DriveZTheme
@@ -74,6 +75,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import coil3.compose.AsyncImage
 import com.example.drivez.components.AplicationTopBar
 import com.example.drivez.components.Avaliacao
 import com.example.drivez.components.BottomClienteBar
@@ -87,8 +89,6 @@ import com.example.drivez.data.model.Prestador
 import com.example.drivez.data.model.StatusPedido
 import com.example.drivez.ui.theme.AppColors
 import com.example.drivez.util.FormatarData
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.derivedStateOf
 
 
 class MainActivity : ComponentActivity() {
@@ -127,6 +127,13 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("home/cliente/contatos") {
                             ContatosScreen(navController = navController)
+                        }
+                        composable(
+                            route = "home/cliente/perfil/{clienteId}",
+                            arguments = listOf(navArgument("clienteId") { type = NavType.StringType })
+                        ) {
+                            val clienteId = it.arguments?.getString("clienteId")
+                            PerfilScreen(navController = navController, userLogado = clienteId!!)
                         }
 
                     }
@@ -1076,8 +1083,6 @@ fun ContatosScreen(navController: NavController) {
         )
     )
 
-    val listState = rememberLazyListState()
-
     Scaffold(
         topBar = {
             AplicationTopBar(navController = navController, titulo = "Contatos", retornavel = false, backgroundColor = AppColors.PrimaryRed,
@@ -1098,6 +1103,150 @@ fun ContatosScreen(navController: NavController) {
             ) {
                 items(listaDeContatos){
                     CardContato(it)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PerfilScreen(navController: NavController, userLogado: String) {
+    Scaffold(
+        topBar = {
+            AplicationTopBar(navController = navController, titulo = "Meu Perfil", retornavel = true)
+        }
+    ) { paddingValues ->
+        Card(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+                .padding(bottom = 50.dp, start = 20.dp, end = 20.dp)
+                .verticalScroll(rememberScrollState())
+                .border(1.dp, AppColors.BorderGray, RoundedCornerShape(15.dp)),
+            shape = RoundedCornerShape(15.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = AppColors.CardBackground,
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 10.dp
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 20.dp, horizontal = 15.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(30.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(150.dp)
+                ) {
+                    //Depois pensar na logica para pesquisar o id do usuario Logado e retornar as informações aqui
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_person_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .border(1.dp, AppColors.SecondaryRed, RoundedCornerShape(100))
+                    )
+                    IconButton(
+                        onClick = {},
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_camera_alt_24),
+                            contentDescription = "Alterar Foto",
+                            modifier = Modifier
+                                .size(30.dp)
+                        )
+                    }
+                }
+                Avaliacao(4.0, 30.dp, 3.dp)
+                Text(
+                    text = "João Blesa",
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 25.sp
+                )
+                Card(
+                    modifier = Modifier
+                        .border(1.dp, AppColors.BorderGray, RoundedCornerShape(15.dp)),
+                    shape = RoundedCornerShape(15.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = AppColors.CardBackground,
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 10.dp
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight()
+                            .padding(vertical = 20.dp, horizontal = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        Text(
+                            text = "Dados Pessoais",
+                            fontFamily = fontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+
+                        CampoDigitar(campoNome = "Nome do Usuario", alteravel = true,
+                            painter = painterResource(R.drawable.baseline_person_24),
+                            painterTransform = painterResource(R.drawable.baseline_person_24),
+                            iconFim = false)
+
+
+                        CampoDigitar( campoNome = "CPF/CNPJ", alteravel = false)
+
+                        //Depois alterar pelo icone do email
+                        CampoDigitar(campoNome = "Email", alteravel = true,
+                            painter = painterResource(R.drawable.baseline_person_24),
+                            painterTransform = painterResource(R.drawable.baseline_person_24),
+                            iconFim = false)
+
+                        //Depois alterar pelo icone do telefone
+                        CampoDigitar(campoNome = "Telefone", alteravel = true,
+                            painter = painterResource(R.drawable.baseline_person_24),
+                            painterTransform = painterResource(R.drawable.baseline_person_24),
+                            iconFim = false)
+
+                        Button(
+                            onClick = {},
+                            modifier = Modifier
+                                .height(50.dp)
+                                .width(140.dp)
+                                .clip(RoundedCornerShape(15.dp))
+                                .border(1.dp, Color.Black, RoundedCornerShape(15.dp)),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Transparent,
+                                contentColor = AppColors.SecondaryRed
+                            )
+                        ) {
+                            Text(
+                                text = "Alterar Senha",
+                                fontFamily = fontFamily,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                    Text(
+                        text = "Excluir Conta",
+                        style = TextStyle(
+                            textDecoration = TextDecoration.Underline,
+                            fontSize = 10.sp
+                        ),
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .padding(end = 40.dp, bottom = 40.dp)
+                    )
                 }
             }
         }
