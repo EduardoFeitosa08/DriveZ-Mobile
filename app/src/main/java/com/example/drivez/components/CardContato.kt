@@ -1,6 +1,7 @@
 package com.example.drivez.components
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,12 +16,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.drivez.R
 import com.example.drivez.data.model.Contato
@@ -28,11 +31,15 @@ import com.example.drivez.fontFamily
 import com.example.drivez.ui.theme.AppColors
 
 @Composable
-fun CardContato(contato: Contato) {
+fun CardContato(contato: Contato, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(15.dp)),
+            .clip(RoundedCornerShape(15.dp))
+            .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(15.dp))
+            .clickable{
+                navController.navigate(route = "home/cliente/contatos/conversa/${contato.id}")
+            },
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
         ),
@@ -54,6 +61,7 @@ fun CardContato(contato: Contato) {
                 contentDescription = null,
                 modifier = Modifier
                     .size(70.dp)
+                    .clip(RoundedCornerShape(100))
                     .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100)),
             )
 //            Icon(

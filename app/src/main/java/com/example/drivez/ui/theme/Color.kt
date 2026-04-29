@@ -14,4 +14,6 @@ object AppColors {
     val TitleGray = Color(0xFF3E3F3F)
     val PlaceholderGray = Color(0xFFA1A1A1)
     val TextWhite = Color(0xFFFFFFFF)
+    val ConfirmGreen = Color(0xFF35DA28)
+    val BackgroundConversaYellow = Color(0xFFFFFEE8)
 }

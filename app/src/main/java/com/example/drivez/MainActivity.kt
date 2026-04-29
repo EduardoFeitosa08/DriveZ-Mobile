@@ -3,8 +3,11 @@ package com.example.drivez
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -25,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -52,6 +56,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,6 +80,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import android.net.Uri
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import com.example.drivez.components.AplicationTopBar
 import com.example.drivez.components.Avaliacao
@@ -129,11 +143,16 @@ class MainActivity : ComponentActivity() {
                             ContatosScreen(navController = navController)
                         }
                         composable(
-                            route = "home/cliente/perfil/{clienteId}",
-                            arguments = listOf(navArgument("clienteId") { type = NavType.StringType })
+                            route = "home/cliente/perfil",
                         ) {
-                            val clienteId = it.arguments?.getString("clienteId")
-                            PerfilScreen(navController = navController, userLogado = clienteId!!)
+                            PerfilScreen(navController = navController)
+                        }
+                        composable(
+                            route = "home/cliente/contatos/conversa/{contatoId}",
+                            arguments = listOf(navArgument("contatoId") { type = NavType.StringType })
+                        ) {
+                            val contatoId = it.arguments?.getString("contatoId")
+                            ConversaScreen(navController = navController, contatoId = contatoId!!)
                         }
 
                     }
@@ -551,6 +570,7 @@ fun HomeClienteScreen(navController: NavController) {
                         Icon(
                             painter = painterResource(R.drawable.baseline_notifications_active_24),
                             contentDescription = "Notificação Ativa",
+                            tint = AppColors.DarkBlue,
                             modifier = Modifier
                                 .size(50.dp)
                                 .padding(end = 15.dp)
@@ -581,8 +601,10 @@ fun HomeClienteScreen(navController: NavController) {
                     Column() {
                         Text(
                             text = "Mostrando prestadores próximos a você",
+                            color = Color.Black,
                             fontFamily = fontFamily,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         LinearProgressIndicator(
@@ -596,6 +618,7 @@ fun HomeClienteScreen(navController: NavController) {
                     Icon(
                         painter = painterResource(R.drawable.baseline_refresh_24),
                         contentDescription = "Atualizar",
+                        tint = AppColors.DarkBlue,
                         modifier = Modifier.size(35.dp)
                     )
                 }
@@ -667,6 +690,7 @@ fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navContro
             Icon(
                 painter = painterResource(R.drawable.baseline_person_24),
                 contentDescription = "Prestador",
+                tint = AppColors.DarkBlue,
                 modifier = Modifier
                     .size(70.dp)
                     .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100))
@@ -697,6 +721,7 @@ fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navContro
                         text = "(${prestador.totalAvaliacoes})",
                         fontFamily = fontFamily,
                         fontWeight = FontWeight.Bold,
+                        color = Color.Black,
                     )
                     VerticalDivider(
                         modifier = Modifier.fillMaxHeight(),
@@ -723,6 +748,7 @@ fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navContro
                                 text = item.nome,
                                 fontFamily = fontFamily,
                                 fontWeight = FontWeight.SemiBold,
+                                color = Color.Black,
                                 modifier = Modifier
                                     .padding(vertical = 5.dp, horizontal = 15.dp)
                             )
@@ -750,7 +776,8 @@ fun ServicoScreen(navController: NavController, prestadorId: String) {
     Scaffold(
         topBar = {
             AplicationTopBar(navController = navController)
-        }
+        },
+        containerColor = Color.White
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -764,6 +791,7 @@ fun ServicoScreen(navController: NavController, prestadorId: String) {
             Icon(
                 painter = painterResource(R.drawable.baseline_person_24),
                 contentDescription = "Prestador",
+                tint = AppColors.DarkBlue,
                 modifier = Modifier
                     .size(150.dp)
                     .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100))
@@ -775,6 +803,7 @@ fun ServicoScreen(navController: NavController, prestadorId: String) {
                 text = prestadorTeste.nome,
                 fontFamily = fontFamily,
                 fontWeight = FontWeight.Bold,
+                color = Color.Black,
                 fontSize = 26.sp,
                 textAlign = TextAlign.Center
             )
@@ -783,6 +812,7 @@ fun ServicoScreen(navController: NavController, prestadorId: String) {
                 text = prestadorTeste.descricao,
                 fontFamily = fontFamily,
                 fontWeight = FontWeight.SemiBold,
+                color = Color.Black,
                 fontSize = 20.sp,
                 textAlign = TextAlign.Justify
             )
@@ -871,7 +901,8 @@ fun RegistroDePedidosScreen(navController: NavController) {
         },
         bottomBar = {
             BottomClienteBar(navController = navController, shadow = false)
-        }
+        },
+        containerColor = Color.White
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -894,6 +925,7 @@ fun CardHistoricoPedido(pedido: Pedido, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 15.dp, horizontal = 15.dp)
+            .clip(RoundedCornerShape(15.dp))
             .border(1.dp, Color.Black, RoundedCornerShape(15.dp)),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFF5F5F5),
@@ -1090,7 +1122,8 @@ fun ContatosScreen(navController: NavController) {
         },
         bottomBar = {
             BottomClienteBar(navController = navController, shadow = false)
-        }
+        },
+        containerColor = Color.White
     ) { paddingValues ->
         Box(
             modifier = Modifier.fillMaxSize()
@@ -1102,19 +1135,151 @@ fun ContatosScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 items(listaDeContatos){
-                    CardContato(it)
+                    CardContato(it, navController)
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PerfilScreen(navController: NavController, userLogado: String) {
+fun ConversaScreen(navController: NavController, contatoId: String) {
+
+    val contatoTeste = Contato(
+        id = "1",
+        name = "Rimberio - Guincho",
+        ultimaMensagem = "Estou chegando na sua localização.",
+        perfilImgUrl = "https://i.pravatar.cc/150?u=1"
+    )
+
+    var textoState by remember {
+        mutableStateOf("")
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                modifier = Modifier.height(90.dp),
+                title = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(15.dp)
+                    ) {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                painter = painterResource(R.drawable.baseline_arrow_back_24),
+                                contentDescription = "Voltar",
+                                tint = Color.White,
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+                        AsyncImage(
+                            model = "${contatoTeste.perfilImgUrl}",
+                            placeholder = painterResource(R.drawable.baseline_person_24),
+                            error = painterResource(R.drawable.baseline_person_24),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(RoundedCornerShape(100))
+                                .border(1.dp, Color.White, RoundedCornerShape(100)),
+                        )
+                        Text(
+                            text = contatoTeste.name,
+                            fontFamily = fontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            fontSize = 20.sp
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = AppColors.PrimaryRed,
+                ),
+            )
+        },
+        bottomBar = {
+            BottomAppBar(
+                modifier = Modifier
+                    .padding(horizontal = 15.dp, vertical = 15.dp)
+                    .height(120.dp)
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .clip(RoundedCornerShape(20.dp))
+                    .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(20.dp)),
+                actions = {
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconButton(
+                            onClick = {}
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.gallery_icon),
+                                contentDescription = "Anexar"
+                            )
+                        }
+
+                        TextField(
+                            value = textoState,
+                            onValueChange = { textoState = it },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 4.dp),
+                            placeholder = { Text("Mensagem...") },
+                            maxLines = 5,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent
+                            )
+                        )
+
+                        IconButton(
+                            onClick = {
+
+                            },
+                            enabled = textoState.isNotBlank()
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.send_icon),
+                                contentDescription = "Enviar",
+                            )
+                        }
+                    }
+                },
+                containerColor = AppColors.CardBackground
+            )
+        },
+        containerColor = AppColors.BackgroundConversaYellow
+    ) { paddingValues ->
+
+    }
+
+}
+
+@Composable
+fun PerfilScreen(navController: NavController) {
+
+    var imagemSelecionada by rememberSaveable { mutableStateOf<Uri?>(null) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri: Uri? -> imagemSelecionada = uri }
+    )
+
+    //Quando ir fazer o viewModel fazer a parte de salvar o usuario logado globalmente e salva-lo para chegar nessa tela aqui
     Scaffold(
         topBar = {
             AplicationTopBar(navController = navController, titulo = "Meu Perfil", retornavel = true)
-        }
+        },
+        containerColor = Color.White
     ) { paddingValues ->
         Card(
             modifier = Modifier
@@ -1140,34 +1305,65 @@ fun PerfilScreen(navController: NavController, userLogado: String) {
             ) {
                 Box(
                     modifier = Modifier
-                        .size(150.dp)
+                        .size(190.dp)
                 ) {
                     //Depois pensar na logica para pesquisar o id do usuario Logado e retornar as informações aqui
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_person_24),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .border(1.dp, AppColors.SecondaryRed, RoundedCornerShape(100))
-                    )
+
+                    if(imagemSelecionada != null){
+                        AsyncImage(
+                            model = imagemSelecionada,
+                            contentDescription = "Foto de Perfil",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape)
+                                .clickable {
+                                    photoPickerLauncher.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                },
+                            contentScale = ContentScale.Crop
+                        )
+                    }else{
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_person_24),
+                            contentDescription = null,
+                            tint = AppColors.DarkBlue,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .border(1.dp, AppColors.SecondaryRed, RoundedCornerShape(100))
+                                .clickable {
+                                    photoPickerLauncher.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                },
+                        )
+                    }
+
                     IconButton(
-                        onClick = {},
+                        onClick = {
+                            photoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.baseline_camera_alt_24),
                             contentDescription = "Alterar Foto",
+                            tint = AppColors.DarkBlue,
                             modifier = Modifier
                                 .size(30.dp)
+                                .offset(x = 5.dp, y = 5.dp)
                         )
                     }
                 }
                 Avaliacao(4.0, 30.dp, 3.dp)
                 Text(
-                    text = "João Blesa",
+                    text = "João Belson",
                     fontFamily = fontFamily,
                     fontWeight = FontWeight.SemiBold,
+                    color = Color.Black,
                     fontSize = 25.sp
                 )
                 Card(
@@ -1191,6 +1387,7 @@ fun PerfilScreen(navController: NavController, userLogado: String) {
                         Text(
                             text = "Dados Pessoais",
                             fontFamily = fontFamily,
+                            color = Color.Black,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         )
@@ -1243,10 +1440,61 @@ fun PerfilScreen(navController: NavController, userLogado: String) {
                         ),
                         fontFamily = fontFamily,
                         fontWeight = FontWeight.SemiBold,
+                        color = AppColors.PlaceholderGray,
                         modifier = Modifier
                             .align(Alignment.End)
                             .padding(end = 40.dp, bottom = 40.dp)
                     )
+                }
+                Text(
+                    text = "Salvar Alterações?",
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black,
+                    fontSize = 25.sp
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(
+                        onClick = {},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AppColors.SecondaryRed,
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier
+                            .height(50.dp),
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Text(
+                            text = "Cancelar",
+                            fontFamily = fontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            fontSize = 16.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(30.dp))
+                    Button(
+                        onClick = {},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AppColors.ConfirmGreen,
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier
+                            .height(50.dp),
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Text(
+                            text = "Confirmar",
+                            fontFamily = fontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
             }
         }
