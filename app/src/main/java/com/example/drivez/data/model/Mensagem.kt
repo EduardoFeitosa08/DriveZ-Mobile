@@ -10,5 +10,6 @@ data class Mensagem(
     val texto: String?,
     val imgUrl: String? = null,
     val horario: String,
-    val status: StatusMensagem
+    val status: StatusMensagem,
+    val remetenteMensagem: RemetenteMensagem,
 )
