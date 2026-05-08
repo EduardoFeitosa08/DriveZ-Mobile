@@ -74,7 +74,8 @@ fun BalaoChat(mensagem: Mensagem, souOPrestador: Boolean) {
                         text = mensagem.texto,
                         fontFamily = fontFamily,
                         fontSize = 16.sp,
-                        modifier = Modifier.padding(top = 15.dp, start = 12.dp, end = 12.dp, bottom = 4.dp)
+                        modifier = Modifier.padding(top = 15.dp, start = 12.dp, end = 12.dp, bottom = 4.dp),
+                        color = Color.Black
                     )
                 }
 

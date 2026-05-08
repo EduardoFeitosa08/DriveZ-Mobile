@@ -82,12 +82,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import android.net.Uri
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.layout.ContentScale
@@ -98,7 +96,9 @@ import com.example.drivez.components.BalaoChat
 import com.example.drivez.components.BotaoFlutuante
 import com.example.drivez.components.BottomClienteBar
 import com.example.drivez.components.CampoDigitar
+import com.example.drivez.components.CardConfirmacao
 import com.example.drivez.components.CardContato
+import com.example.drivez.components.CardServicoStatus
 import com.example.drivez.components.TituloCampo
 import com.example.drivez.data.model.Categoria
 import com.example.drivez.data.model.Contato
@@ -160,6 +160,13 @@ class MainActivity : ComponentActivity() {
                         ) {
                             val contatoId = it.arguments?.getString("contatoId")
                             ConversaScreen(navController = navController, contatoId = contatoId!!)
+                        }
+                        composable(
+                            route = "home/cliente/servico_status/{prestadorId}",
+                            arguments = listOf(navArgument("prestadorId") { type = NavType.StringType })
+                        ) {
+                            val prestadorId = it.arguments?.getString("prestadorId")
+                            ServiceStatusScreen(navController = navController, prestadorId = prestadorId!!)
                         }
 
                     }
@@ -857,7 +864,7 @@ fun ServicoScreen(navController: NavController, prestadorId: String) {
 
             Button(
                 onClick = {
-                    //Logica da solicitacao
+                    navController.navigate(route = "home/cliente/contatos/conversa/${prestadorId}")
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1153,6 +1160,11 @@ fun ContatosScreen(navController: NavController) {
 @Composable
 fun ConversaScreen(navController: NavController, contatoId: String) {
 
+    //Com o id do contato preciso pesquisar as mensagens do prestador e com isso o id dele
+    //ira vir e quando solicitar o servico poderá com o id do prestador encontrar a localizacao dele
+    //para comparar com quem pediu e dizer a distancia e também exibir a rua que o prestador está
+    //e onde o cliente esta
+
     val contatoTeste = Contato(
         id = "100",
         name = "Rimberio - Guincho",
@@ -1215,6 +1227,8 @@ fun ConversaScreen(navController: NavController, contatoId: String) {
     }
 
     val listState = rememberLazyListState()
+
+    var showCard by remember { mutableStateOf(false) }
 
     LaunchedEffect(listaDeMensagens.size) {
         if (listaDeMensagens.isNotEmpty()) {
@@ -1324,19 +1338,81 @@ fun ConversaScreen(navController: NavController, contatoId: String) {
         },
         containerColor = AppColors.BackgroundConversaYellow
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
-                .padding(paddingValues),
-            contentPadding = PaddingValues(vertical = 20.dp),
-            state = listState
-        ) {
-            items(listaDeMensagens){ item ->
-                BalaoChat(item, false)
+                .padding(paddingValues)
+                .fillMaxSize()
+        ){
+            LazyColumn(
+                contentPadding = PaddingValues(vertical = 20.dp),
+                state = listState
+            ) {
+                items(listaDeMensagens){ item ->
+                    BalaoChat(item, false)
+                }
             }
+            BotaoFlutuante(onClick = {
+                showCard = true
+            })
         }
-        BotaoFlutuante()
+    }
+    if(showCard){
+        CardConfirmacao(pergunta = "Solicitar Prestador?", onBackClick = { showCard = false },
+            onConfirmClick = {navController.navigate(route = "home/cliente/servico_status/${contatoTeste.id}")})
     }
 
+}
+
+@Composable
+fun ServiceStatusScreen(navController: NavController, prestadorId: String) {
+
+    var cardState by remember { mutableStateOf(false) }
+
+    val prestadorTeste = Prestador(id = 1, nome = "RIMBEIRO", avaliacao = 2.0, perfilImgUrl = "https://i.pravatar.cc/150?u=1", totalAvaliacoes = 45, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico")))
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFE0E0E0)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Google Maps será carregado aqui")
+        }
+
+        IconButton(
+            onClick = {
+                cardState = true
+            },
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.TopStart)
+                .background(Color.White, CircleShape)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.baseline_arrow_back_24),
+                contentDescription = "Voltar",
+                tint = AppColors.DarkBlue
+            )
+        }
+
+        CardServicoStatus(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+                .navigationBarsPadding(),
+            prestador = prestadorTeste,
+            cancelarOnClick = {
+                cardState = true
+            }
+        )
+    }
+    if(cardState){
+        CardConfirmacao(pergunta = "Cancelar Solicitação?", onBackClick = { cardState = false  },
+            onConfirmClick = {
+                navController.navigate(route = "home/cliente")
+            })
+    }
 }
 
 @Composable
