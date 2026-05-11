@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.drivez.ConfigurarPedidoSOSScreen
 import com.example.drivez.R
 import com.example.drivez.fontFamily
 import com.example.drivez.data.model.BottomNavItem
@@ -115,7 +116,7 @@ fun BottomClienteBar(navController: NavController, shadow: Boolean = true) {
         }
         FloatingActionButton(
             onClick = {
-                //Depois adicionar a troca de pagina para o SOS
+                navController.navigate(route = "home/cliente/pedido_sos")
             },
             containerColor = Color(0xFFE53935),
             contentColor = Color.White,

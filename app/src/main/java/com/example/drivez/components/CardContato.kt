@@ -64,13 +64,6 @@ fun CardContato(contato: Contato, navController: NavController) {
                     .clip(RoundedCornerShape(100))
                     .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100)),
             )
-//            Icon(
-//                painter = painterResource(R.drawable.baseline_person_24),
-//                contentDescription = null,
-//                modifier = Modifier
-//                    .size(70.dp)
-//                    .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100)),
-//            )
 
             Column(
                 modifier = Modifier

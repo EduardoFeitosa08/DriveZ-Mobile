@@ -37,11 +37,12 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.example.drivez.R
 import com.example.drivez.data.model.Prestador
+import com.example.drivez.fontFamily
 import com.example.drivez.ui.theme.AppColors
 
 @Composable
 fun CardServicoStatus(modifier: Modifier = Modifier, prestador: Prestador,
-                      cancelarOnClick: () -> Unit) {
+                      cancelarOnClick: () -> Unit, chatRapidoClick: () -> Unit) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -105,11 +106,17 @@ fun CardServicoStatus(modifier: Modifier = Modifier, prestador: Prestador,
                     colors = ButtonDefaults.buttonColors(containerColor = AppColors.PrimaryRed),
                     shape = RoundedCornerShape(15.dp)
                 ) {
-                    Text("Cancelar", color = Color.White)
+                    Text(
+                        text = "Cancelar",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = fontFamily
+                    )
                 }
 
                 IconButton(
-                    onClick = { /* Chat */ },
+                    onClick = chatRapidoClick,
                     modifier = Modifier
                         .weight(1f)
                         .height(55.dp),
@@ -167,7 +174,7 @@ fun AddressTimeline(
         ) {
             Text(
                 text = origin,
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 color = Color.DarkGray,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -177,7 +184,7 @@ fun AddressTimeline(
 
             Text(
                 text = destination,
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 color = Color.DarkGray,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

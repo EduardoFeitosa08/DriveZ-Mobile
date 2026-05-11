@@ -81,13 +81,19 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Divider
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import com.example.drivez.components.AplicationTopBar
@@ -95,12 +101,14 @@ import com.example.drivez.components.Avaliacao
 import com.example.drivez.components.BalaoChat
 import com.example.drivez.components.BotaoFlutuante
 import com.example.drivez.components.BottomClienteBar
+import com.example.drivez.components.CampoConfigurarPedido
 import com.example.drivez.components.CampoDigitar
+import com.example.drivez.components.CardCategoria
 import com.example.drivez.components.CardConfirmacao
 import com.example.drivez.components.CardContato
-import com.example.drivez.components.CardServicoStatus
 import com.example.drivez.components.TituloCampo
 import com.example.drivez.data.model.Categoria
+import com.example.drivez.data.model.CategoriaPedido
 import com.example.drivez.data.model.Contato
 import com.example.drivez.data.model.Mensagem
 import com.example.drivez.data.model.Pedido
@@ -167,6 +175,11 @@ class MainActivity : ComponentActivity() {
                         ) {
                             val prestadorId = it.arguments?.getString("prestadorId")
                             ServiceStatusScreen(navController = navController, prestadorId = prestadorId!!)
+                        }
+                        composable(
+                            route = "home/cliente/pedido_sos"
+                        ){
+                            ConfigurarPedidoSOSScreen(navController = navController)
                         }
 
                     }
@@ -1368,6 +1381,10 @@ fun ServiceStatusScreen(navController: NavController, prestadorId: String) {
 
     var cardState by remember { mutableStateOf(false) }
 
+    var chatState by remember { mutableStateOf(false) }
+
+    var servicoState by remember { mutableStateOf(false) }
+
     val prestadorTeste = Prestador(id = 1, nome = "RIMBEIRO", avaliacao = 2.0, perfilImgUrl = "https://i.pravatar.cc/150?u=1", totalAvaliacoes = 45, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico")))
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -1396,15 +1413,25 @@ fun ServiceStatusScreen(navController: NavController, prestadorId: String) {
             )
         }
 
-        CardServicoStatus(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-                .navigationBarsPadding(),
-            prestador = prestadorTeste,
-            cancelarOnClick = {
-                cardState = true
-            }
+        //Quando o servicoState se tornar true significa que o servico foi concluido e com isso a aplicacao deve
+        //exibir a o card de avaliacao do prestador (Pensar na ideia do WebSocket ou na notificacao)
+
+//        CardServicoStatus(
+//            modifier = Modifier
+//                .align(Alignment.BottomCenter)
+//                .padding(16.dp)
+//                .navigationBarsPadding(),
+//            prestador = prestadorTeste,
+//            cancelarOnClick = {
+//                cardState = true
+//            },
+//            chatRapidoClick = {
+//                chatState = true
+//            }
+//        )
+        CardAvaliacao(
+            navController = navController,
+            prestador = prestadorTeste
         )
     }
     if(cardState){
@@ -1412,6 +1439,9 @@ fun ServiceStatusScreen(navController: NavController, prestadorId: String) {
             onConfirmClick = {
                 navController.navigate(route = "home/cliente")
             })
+    }
+    if(chatState){
+        ChatRapidoScreen(backOnClick = {chatState = false})
     }
 }
 
@@ -1646,6 +1676,373 @@ fun PerfilScreen(navController: NavController) {
                             fontSize = 16.sp
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ChatRapidoScreen(backOnClick: () -> Unit) {
+    val contatoTeste = Contato(
+        id = "100",
+        name = "Rimberio - Guincho",
+        ultimaMensagem = "Estou chegando na sua localização.",
+        perfilImgUrl = "https://i.pravatar.cc/150?u=1"
+    )
+
+    //Lista de Mensagens para fazer o design
+    val listaDeMensagens = listOf(
+        Mensagem(
+            id = "1",
+            contatoId = "200", // ID do Prestador
+            remententeId = "100", // ID do Cliente
+            texto = "Olá, meu carro parou na rodovia.",
+            horario = "10:00",
+            status = StatusMensagem.LIDA,
+            remetenteMensagem = RemetenteMensagem.CLIENTE
+        ),
+        Mensagem(
+            id = "2",
+            contatoId = "100",
+            remententeId = "200",
+            texto = "Bom dia! Qual seria o modelo do veículo?",
+            horario = "10:02",
+            status = StatusMensagem.LIDA,
+            remetenteMensagem = RemetenteMensagem.PRESTADOR
+        ),
+        Mensagem(
+            id = "3",
+            contatoId = "200",
+            remententeId = "100",
+            texto = "É um sedan prata. Segue a foto do local.",
+            horario = "10:05",
+            status = StatusMensagem.LIDA,
+            remetenteMensagem = RemetenteMensagem.CLIENTE
+        ),
+        Mensagem(
+            id = "4",
+            contatoId = "100",
+            remententeId = "200",
+            texto = "Recebido. O guincho chega em 10 minutos!",
+            horario = "10:07",
+            status = StatusMensagem.ENVIADA,
+            remetenteMensagem = RemetenteMensagem.PRESTADOR
+        )
+    )
+
+    var textoState by remember {
+        mutableStateOf("")
+    }
+
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(listaDeMensagens.size) {
+        if (listaDeMensagens.isNotEmpty()) {
+            listState.scrollToItem(listaDeMensagens.size - 1)
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Avatar simplificado (substitua por AsyncImage no futuro)
+                        Surface(
+                            modifier = Modifier.size(40.dp),
+                            shape = CircleShape,
+                            color = Color.LightGray,
+                            tonalElevation = 6.dp,
+                            shadowElevation = 8.dp
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.baseline_person_24),
+                                contentDescription = null)
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(text = contatoTeste.name, fontFamily = fontFamily)
+                    }
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = backOnClick
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.baseline_arrow_back_24),
+                            contentDescription = "Voltar"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        },
+        bottomBar = {
+            Surface(
+                modifier = Modifier.fillMaxWidth()
+                    .navigationBarsPadding(),
+                shadowElevation = 8.dp,
+                color = Color.White
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = textoState,
+                        onValueChange = { textoState = it },
+                        placeholder = { Text("Texto") },
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(CircleShape),
+                        shape = CircleShape,
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    textoState = ""
+                                }
+                            ) {
+                                Icon(
+                                    painterResource(R.drawable.send_icon),
+                                    contentDescription = "Enviar",
+                                    tint = Color.DarkGray
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(vertical = 16.dp)
+        ) {
+            items(listaDeMensagens) { mensagem ->
+                BalaoChat(mensagem = mensagem, souOPrestador = false)
+            }
+        }
+    }
+
+}
+
+@Composable
+fun CardAvaliacao(navController: NavController, prestador: Prestador, modifier: Modifier = Modifier) {
+    var rating by remember { mutableIntStateOf(0) }
+    var comentario by remember { mutableStateOf("") }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding()
+    ) {
+//        Image(
+//            painter = painterResource(id = R.drawable.map_placeholder),
+//            contentDescription = null,
+//            modifier = Modifier.fillMaxSize(),
+//            contentScale = ContentScale.Crop
+//        )
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f) // Ocupa a maior parte da tela
+                .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                .background(Color.White)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "A solicitação foi finalizada,\navalie o seu serviço!",
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                fontFamily = fontFamily,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            Surface(
+                modifier = Modifier.size(80.dp),
+                shape = CircleShape,
+                border = BorderStroke(1.dp, AppColors.DarkBlue)
+            ) {
+                AsyncImage(
+                    model = "${prestador.perfilImgUrl}",
+                    placeholder = painterResource(R.drawable.baseline_person_24),
+                    error = painterResource(R.drawable.baseline_person_24),
+                    contentDescription = null,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(5) { index ->
+                    val isSelected = index < rating
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_star_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clickable { rating = index + 1 },
+                        tint = if (isSelected) Color(0xFFFFC107) else Color.LightGray
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text(
+                text = "Fazer comentário (Opcional)",
+                modifier = Modifier.fillMaxWidth(),
+                fontWeight = FontWeight.Bold,
+                fontFamily = fontFamily,
+                color = Color.DarkGray
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = comentario,
+                onValueChange = { comentario = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color(0xFFE57373),
+                )
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
+                onClick = {},
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336)),
+                shape = RoundedCornerShape(28.dp)
+            ) {
+                Text(text = "Enviar", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+fun ConfigurarPedidoSOSScreen(navController: NavController) {
+    var origem by remember { mutableStateOf("") }
+    var destino by remember { mutableStateOf("") }
+    var descricao by remember { mutableStateOf("") }
+    var pesquisa by remember { mutableStateOf("") }
+
+    var mostrarCategorias by remember { mutableStateOf(false) }
+
+    val listaCategorias = listOf(
+        CategoriaPedido(painterResource(id = R.drawable.baseline_person_24), "Guincho"),
+        CategoriaPedido(painterResource(id = R.drawable.baseline_person_24), "Mecanico"),
+        CategoriaPedido(painterResource(id = R.drawable.baseline_person_24), "Eletricista"),
+        CategoriaPedido(painterResource(id = R.drawable.baseline_person_24), "Borracheiro"),
+        CategoriaPedido(painterResource(id = R.drawable.baseline_person_24), "Troca de Pneu")
+    )
+    val categoriasFiltradas = listaCategorias.filter { it.nome.contains(pesquisa, ignoreCase = true) }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+
+        item {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(painterResource(R.drawable.baseline_arrow_back_24), contentDescription = "Voltar")
+                }
+            }
+            Text(
+                text = "Configurar Pedido",
+                fontFamily = fontFamily,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+            )
+        }
+
+        item {
+            CampoConfigurarPedido(value = origem, onValueChange = { origem = it }, label = "Origem")
+            Spacer(modifier = Modifier.height(8.dp))
+            CampoConfigurarPedido(value = destino, onValueChange = { destino = it }, label = "Destino")
+            Spacer(modifier = Modifier.height(8.dp))
+            CampoConfigurarPedido(
+                value = descricao,
+                onValueChange = { descricao = it },
+                label = "Descrição",
+                isSingleLine = false,
+                modifier = Modifier.height(120.dp)
+            )
+        }
+
+        item {
+            Button(
+                onClick = { mostrarCategorias = true },
+                modifier = Modifier.width(200.dp).height(48.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD34336)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "Continuar",
+                    color = Color.White,
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        item {
+            AnimatedVisibility(visible = mostrarCategorias) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Divider(modifier = Modifier.padding(vertical = 24.dp), color = Color(0xFFD34336), thickness = 2.dp)
+
+                    Text(
+                        text = "Selecione a categoria do pedido",
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    // Campo de Pesquisa
+                    OutlinedTextField(
+                        value = pesquisa,
+                        onValueChange = { pesquisa = it },
+                        placeholder = { Text("Pesquisar Contato") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = CircleShape,
+                        leadingIcon = { Icon(painterResource(R.drawable.search), contentDescription = null) }
+                    )
+                }
+            }
+        }
+
+        // Lista de Categorias
+        if (mostrarCategorias) {
+            items(categoriasFiltradas) { categoria ->
+                CardCategoria(categoriaPedido = categoria) {
+                    println("Categoria selecionada: $categoria")
                 }
             }
         }
