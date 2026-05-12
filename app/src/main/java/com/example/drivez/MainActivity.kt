@@ -86,6 +86,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Divider
@@ -96,6 +97,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
+import com.example.drivez.components.AddressTimeline
 import com.example.drivez.components.AplicationTopBar
 import com.example.drivez.components.Avaliacao
 import com.example.drivez.components.BalaoChat
@@ -106,6 +108,7 @@ import com.example.drivez.components.CampoDigitar
 import com.example.drivez.components.CardCategoria
 import com.example.drivez.components.CardConfirmacao
 import com.example.drivez.components.CardContato
+import com.example.drivez.components.CardServicoStatus
 import com.example.drivez.components.TituloCampo
 import com.example.drivez.data.model.Categoria
 import com.example.drivez.data.model.CategoriaPedido
@@ -548,8 +551,6 @@ fun CadastroScreen(navController: NavController) {
 @Composable
 fun HomeClienteScreen(navController: NavController) {
 
-    val progresso = remember { Animatable(1f) }
-
     val listaPrestadores = listOf(
         Prestador(id = 1, nome = "RIMBEIRO", avaliacao = 2.0, totalAvaliacoes = 45, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico"))),
         Prestador(id = 2, nome = "RIMBEIRO", avaliacao = 1.0, totalAvaliacoes = 35, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico"))),
@@ -557,12 +558,15 @@ fun HomeClienteScreen(navController: NavController) {
         Prestador(id = 4, nome = "RIMBEIRO", avaliacao = 3.5, totalAvaliacoes = 10, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico")))
     )
 
-    LaunchedEffect(Unit) {
+    val progresso = remember { Animatable(1f) }
+    var resetKey by remember { mutableStateOf(0) }
+
+    LaunchedEffect(resetKey) {
+        progresso.snapTo(0f) // Garante que comece do zero imediatamente ao resetar
         progresso.animateTo(
-            targetValue = 0f,
+            targetValue = 1f,
             animationSpec = infiniteRepeatable(
                 animation = tween(durationMillis = 3 * 60 * 1000, easing = LinearEasing),
-                //Logica quando realizar o reset
                 repeatMode = RepeatMode.Restart
             )
         )
@@ -646,7 +650,9 @@ fun HomeClienteScreen(navController: NavController) {
                         painter = painterResource(R.drawable.baseline_refresh_24),
                         contentDescription = "Atualizar",
                         tint = AppColors.DarkBlue,
-                        modifier = Modifier.size(35.dp)
+                        modifier = Modifier
+                            .size(35.dp)
+                            .clickable { resetKey++ }
                     )
                 }
                 Button(
@@ -1379,6 +1385,8 @@ fun ConversaScreen(navController: NavController, contatoId: String) {
 @Composable
 fun ServiceStatusScreen(navController: NavController, prestadorId: String) {
 
+    var servicoAceitoState by remember { mutableStateOf(false) }
+
     var cardState by remember { mutableStateOf(false) }
 
     var chatState by remember { mutableStateOf(false) }
@@ -1416,6 +1424,13 @@ fun ServiceStatusScreen(navController: NavController, prestadorId: String) {
         //Quando o servicoState se tornar true significa que o servico foi concluido e com isso a aplicacao deve
         //exibir a o card de avaliacao do prestador (Pensar na ideia do WebSocket ou na notificacao)
 
+        CardBuscandoPrestador(
+            cancelarOnClick = {cardState = true},
+            modifier = Modifier.align(Alignment.BottomCenter)
+                .padding(horizontal = 16.dp)
+                .navigationBarsPadding(),
+        )
+
 //        CardServicoStatus(
 //            modifier = Modifier
 //                .align(Alignment.BottomCenter)
@@ -1429,10 +1444,10 @@ fun ServiceStatusScreen(navController: NavController, prestadorId: String) {
 //                chatState = true
 //            }
 //        )
-        CardAvaliacao(
-            navController = navController,
-            prestador = prestadorTeste
-        )
+//        CardAvaliacao(
+//            navController = navController,
+//            prestador = prestadorTeste
+//        )
     }
     if(cardState){
         CardConfirmacao(pergunta = "Cancelar Solicitação?", onBackClick = { cardState = false  },
@@ -1780,7 +1795,8 @@ fun ChatRapidoScreen(backOnClick: () -> Unit) {
         },
         bottomBar = {
             Surface(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .navigationBarsPadding(),
                 shadowElevation = 8.dp,
                 color = Color.White
@@ -1951,98 +1967,207 @@ fun ConfigurarPedidoSOSScreen(navController: NavController) {
     var pesquisa by remember { mutableStateOf("") }
 
     var mostrarCategorias by remember { mutableStateOf(false) }
+    var cardState by remember { mutableStateOf(false) }
 
     val listaCategorias = listOf(
-        CategoriaPedido(painterResource(id = R.drawable.baseline_person_24), "Guincho"),
-        CategoriaPedido(painterResource(id = R.drawable.baseline_person_24), "Mecanico"),
-        CategoriaPedido(painterResource(id = R.drawable.baseline_person_24), "Eletricista"),
-        CategoriaPedido(painterResource(id = R.drawable.baseline_person_24), "Borracheiro"),
-        CategoriaPedido(painterResource(id = R.drawable.baseline_person_24), "Troca de Pneu")
+        CategoriaPedido(painterResource(id = R.drawable.ic_guincho), "Guincho"),
+        CategoriaPedido(painterResource(id = R.drawable.ic_mecanico), "Mecanico"),
+        CategoriaPedido(painterResource(id = R.drawable.ic_eletricista), "Eletricista"),
+        CategoriaPedido(painterResource(id = R.drawable.ic_borracheiro), "Borracheiro"),
+        CategoriaPedido(painterResource(id = R.drawable.ic_pneu), "Troca de Pneu")
     )
     val categoriasFiltradas = listaCategorias.filter { it.nome.contains(pesquisa, ignoreCase = true) }
 
-    LazyColumn(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+            .background(Color.White)
+    ){
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 70.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
 
-        item {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(painterResource(R.drawable.baseline_arrow_back_24), contentDescription = "Voltar")
-                }
-            }
-            Text(
-                text = "Configurar Pedido",
-                fontFamily = fontFamily,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-            )
-        }
-
-        item {
-            CampoConfigurarPedido(value = origem, onValueChange = { origem = it }, label = "Origem")
-            Spacer(modifier = Modifier.height(8.dp))
-            CampoConfigurarPedido(value = destino, onValueChange = { destino = it }, label = "Destino")
-            Spacer(modifier = Modifier.height(8.dp))
-            CampoConfigurarPedido(
-                value = descricao,
-                onValueChange = { descricao = it },
-                label = "Descrição",
-                isSingleLine = false,
-                modifier = Modifier.height(120.dp)
-            )
-        }
-
-        item {
-            Button(
-                onClick = { mostrarCategorias = true },
-                modifier = Modifier.width(200.dp).height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD34336)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(
-                    text = "Continuar",
-                    color = Color.White,
-                    fontFamily = fontFamily,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-
-        item {
-            AnimatedVisibility(visible = mostrarCategorias) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Divider(modifier = Modifier.padding(vertical = 24.dp), color = Color(0xFFD34336), thickness = 2.dp)
-
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_arrow_back_24),
+                            contentDescription = "Voltar",
+                            modifier = Modifier.size(35.dp)
+                        )
+                    }
                     Text(
-                        text = "Selecione a categoria do pedido",
+                        text = "Configurar Pedido",
                         fontFamily = fontFamily,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        fontSize = 18.sp
                     )
+                }
 
-                    // Campo de Pesquisa
-                    OutlinedTextField(
-                        value = pesquisa,
-                        onValueChange = { pesquisa = it },
-                        placeholder = { Text("Pesquisar Contato") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = CircleShape,
-                        leadingIcon = { Icon(painterResource(R.drawable.search), contentDescription = null) }
+            }
+
+            item {
+                CampoConfigurarPedido(value = origem, onValueChange = { origem = it }, label = "Origem")
+                Spacer(modifier = Modifier.height(8.dp))
+                CampoConfigurarPedido(value = destino, onValueChange = { destino = it }, label = "Destino")
+                Spacer(modifier = Modifier.height(8.dp))
+                CampoConfigurarPedido(
+                    value = descricao,
+                    onValueChange = { descricao = it },
+                    label = "Descrição",
+                    isSingleLine = false,
+                    modifier = Modifier.height(120.dp)
+                )
+            }
+
+            item {
+                Button(
+                    onClick = {
+                        //Depois alterar a logica para se encontrar os endereços escritos
+                        if(origem != "" && destino != "") mostrarCategorias = true else mostrarCategorias = false
+                    },
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.SecondaryRed),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "Continuar",
+                        color = Color.White,
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
                     )
                 }
             }
+
+            item {
+                AnimatedVisibility(visible = mostrarCategorias) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Divider(modifier = Modifier.padding(vertical = 24.dp), color = AppColors.PrimaryRed, thickness = 2.dp)
+
+                        Text(
+                            text = "Selecione a categoria do pedido",
+                            fontFamily = fontFamily,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 16.dp),
+                            fontSize = 18.sp
+                        )
+
+                        OutlinedTextField(
+                            value = pesquisa,
+                            onValueChange = { pesquisa = it },
+                            placeholder = { Text("Pesquisar Categoria") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = CircleShape,
+                            leadingIcon = { Icon(painterResource(R.drawable.search), contentDescription = null) }
+                        )
+                    }
+                }
+            }
+
+            if (mostrarCategorias) {
+                items(categoriasFiltradas) { categoria ->
+                    CardCategoria(categoriaPedido = categoria, onClick = {
+                        cardState = true
+                    })
+                }
+            }
+
+        }
+        if(cardState){
+            CardConfirmacao(
+                pergunta = "Iniciar Busca?",
+                onBackClick = {cardState = false},
+                onConfirmClick = { /*NavController irá navegar*/}
+            )
         }
 
-        // Lista de Categorias
-        if (mostrarCategorias) {
-            items(categoriasFiltradas) { categoria ->
-                CardCategoria(categoriaPedido = categoria) {
-                    println("Categoria selecionada: $categoria")
+    }
+}
+
+@Composable
+fun CardBuscandoPrestador(cancelarOnClick: () -> Unit, modifier: Modifier = Modifier) {
+    val progresso = remember { Animatable(1f) }
+    var resetKey by remember { mutableStateOf(0) }
+
+    LaunchedEffect(resetKey) {
+        progresso.snapTo(0f) // Garante que comece do zero imediatamente ao resetar
+        progresso.animateTo(
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 1 * 60 * 1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            )
+        )
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .navigationBarsPadding()
+    ){
+        Card(
+            modifier = modifier.fillMaxWidth()
+                .align(Alignment.BottomCenter),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LinearProgressIndicator(
+                    progress = {progresso.value},
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(13.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(15.dp)),
+                    color = Color.Red
+                )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                AddressTimeline(
+                    origin = "R. João Blesa - 45. Alphaville",
+                    destination = "R. João Blesa - 45. Alphaville"
+                )
+
+                Spacer(modifier = Modifier.height(50.dp))
+
+                Button(
+                    onClick = cancelarOnClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .padding(horizontal = 40.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AppColors.SecondaryRed,
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(15.dp)
+                ) {
+                    Text(
+                        text = "Confirmar",
+                        color = Color.White,
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 25.sp
+                    )
                 }
             }
         }

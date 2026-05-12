@@ -2,6 +2,7 @@ package com.example.drivez.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -31,13 +32,21 @@ fun CampoConfigurarPedido(
             text = label,
             fontWeight = FontWeight.Bold,
             color = Color.Gray,
-            fontSize = 14.sp,
-            fontFamily = fontFamily
+            fontSize = 18.sp,
+            fontFamily = fontFamily,
+            modifier = Modifier.padding(start = 14.dp)
         )
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(label) },
+            placeholder = {
+                Text(
+                    text = label,
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                )
+                          },
             modifier = modifier.fillMaxWidth(),
             singleLine = isSingleLine,
             shape = RoundedCornerShape(12.dp),

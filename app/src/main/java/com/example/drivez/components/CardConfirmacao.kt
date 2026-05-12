@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.drivez.R
@@ -79,8 +80,9 @@ fun CardConfirmacao(pergunta: String, onBackClick: () -> Unit, onConfirmClick: (
                     text = pergunta,
                     fontWeight = FontWeight.Bold,
                     fontFamily = fontFamily,
-                    fontSize = 28.sp,
-                    color = AppColors.DarkBlue
+                    fontSize = 26.sp,
+                    color = AppColors.DarkBlue,
+                    textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(15.dp))
                 Button(
