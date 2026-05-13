@@ -18,46 +18,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.drivez.R
 
-//@Composable
-//fun Avaliacao(avaliacao: Double, tamanho: Dp, espacamento: Dp, modifier: Modifier = Modifier) {
-//    Row(
-//        modifier = modifier,
-//        horizontalArrangement = Arrangement.spacedBy(espacamento)
-//    ) {
-//        repeat(5){ index ->
-//            StarIcon(tamanho = tamanho)
-//        }
-//    }
-//}
-//
-//
-//@Composable
-//fun StarIcon(tamanho: Dp) {
-//    Box(
-//        contentAlignment = Alignment.CenterStart
-//    ) {
-//        Icon(
-//            painter = painterResource(R.drawable.baseline_star_24),
-//            contentDescription = null,
-//            tint = Color(0xFFAEACAC),
-//            modifier = Modifier.size(tamanho)
-//        )
-//
-//        Box(
-//            modifier = Modifier
-//                .size(tamanho)
-//                .clip(RectangleShape)
-//        ){
-//            Icon(
-//                painter = painterResource(R.drawable.baseline_star_24),
-//                contentDescription = null,
-//                tint = Color(0xFFFFC300),
-//                modifier = Modifier.size(tamanho)
-//            )
-//        }
-//    }
-//}
-
 @Composable
 fun Avaliacao(avaliacao: Double, tamanho: Dp, espacamento: Dp, modifier: Modifier = Modifier
 ) {

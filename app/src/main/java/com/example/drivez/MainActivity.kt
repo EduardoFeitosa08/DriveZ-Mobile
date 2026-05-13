@@ -90,6 +90,8 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Divider
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextField
@@ -103,9 +105,11 @@ import com.example.drivez.components.Avaliacao
 import com.example.drivez.components.BalaoChat
 import com.example.drivez.components.BotaoFlutuante
 import com.example.drivez.components.BottomClienteBar
+import com.example.drivez.components.BottomPrestadorBar
 import com.example.drivez.components.CampoConfigurarPedido
 import com.example.drivez.components.CampoDigitar
 import com.example.drivez.components.CardCategoria
+import com.example.drivez.components.CardCliente
 import com.example.drivez.components.CardConfirmacao
 import com.example.drivez.components.CardContato
 import com.example.drivez.components.CardServicoStatus
@@ -173,16 +177,27 @@ class MainActivity : ComponentActivity() {
                             ConversaScreen(navController = navController, contatoId = contatoId!!)
                         }
                         composable(
-                            route = "home/cliente/servico_status/{prestadorId}",
-                            arguments = listOf(navArgument("prestadorId") { type = NavType.StringType })
+                            route = "home/cliente/servico_status/{prestadorId}/{isSOS}",
+                            arguments = listOf(
+                                navArgument("prestadorId") { type = NavType.StringType },
+                                navArgument("isSOS"){type = NavType.BoolType; defaultValue = false}
+                            )
                         ) {
                             val prestadorId = it.arguments?.getString("prestadorId")
-                            ServiceStatusScreen(navController = navController, prestadorId = prestadorId!!)
+                            val isSOS = it.arguments?.getBoolean("isSOS")
+                            ServiceStatusScreen(navController = navController, prestadorId = prestadorId!!, isSOS!!)
                         }
                         composable(
-                            route = "home/cliente/pedido_sos"
+                            route = "home/cliente/pedido/{isSOS}",
+                            arguments = listOf(
+                                navArgument("isSOS"){type = NavType.BoolType; defaultValue = false}
+                            )
                         ){
-                            ConfigurarPedidoSOSScreen(navController = navController)
+                            val isSOS = it.arguments?.getBoolean("isSOS")
+                            ConfigurarPedidoScreen(navController = navController, isSOS!!)
+                        }
+                        composable("home/prestador"){
+                            HomePrestadorScreen(navController = navController)
                         }
 
                     }
@@ -248,7 +263,10 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
                 Button(
                     onClick = {
                         //Depois alterar para somente logar depois de validar os dados
-                        navController.navigate(route = "home/cliente")
+//                        navController.navigate(route = "home/cliente")
+
+                        //Depois fazer a validacao para saber se o usuario é um cliente ou prestador
+                        navController.navigate(route = "home/prestador")
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -545,7 +563,6 @@ fun CadastroScreen(navController: NavController) {
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1377,13 +1394,13 @@ fun ConversaScreen(navController: NavController, contatoId: String) {
     }
     if(showCard){
         CardConfirmacao(pergunta = "Solicitar Prestador?", onBackClick = { showCard = false },
-            onConfirmClick = {navController.navigate(route = "home/cliente/servico_status/${contatoTeste.id}")})
+            onConfirmClick = {navController.navigate(route = "home/cliente/pedido/false")})
     }
 
 }
 
 @Composable
-fun ServiceStatusScreen(navController: NavController, prestadorId: String) {
+fun ServiceStatusScreen(navController: NavController, prestadorId: String, isSOS: Boolean) {
 
     var servicoAceitoState by remember { mutableStateOf(false) }
 
@@ -1429,6 +1446,7 @@ fun ServiceStatusScreen(navController: NavController, prestadorId: String) {
             modifier = Modifier.align(Alignment.BottomCenter)
                 .padding(horizontal = 16.dp)
                 .navigationBarsPadding(),
+            isSOS = isSOS
         )
 
 //        CardServicoStatus(
@@ -1960,7 +1978,7 @@ fun CardAvaliacao(navController: NavController, prestador: Prestador, modifier: 
 }
 
 @Composable
-fun ConfigurarPedidoSOSScreen(navController: NavController) {
+fun ConfigurarPedidoScreen(navController: NavController, isSOS: Boolean) {
     var origem by remember { mutableStateOf("") }
     var destino by remember { mutableStateOf("") }
     var descricao by remember { mutableStateOf("") }
@@ -2021,20 +2039,29 @@ fun ConfigurarPedidoSOSScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(8.dp))
                 CampoConfigurarPedido(value = destino, onValueChange = { destino = it }, label = "Destino")
                 Spacer(modifier = Modifier.height(8.dp))
-                CampoConfigurarPedido(
-                    value = descricao,
-                    onValueChange = { descricao = it },
-                    label = "Descrição",
-                    isSingleLine = false,
-                    modifier = Modifier.height(120.dp)
-                )
+                if(isSOS){
+                    CampoConfigurarPedido(
+                        value = descricao,
+                        onValueChange = { descricao = it },
+                        label = "Descrição",
+                        isSingleLine = false,
+                        modifier = Modifier.height(120.dp)
+                    )
+                }
             }
 
             item {
                 Button(
                     onClick = {
                         //Depois alterar a logica para se encontrar os endereços escritos
-                        if(origem != "" && destino != "") mostrarCategorias = true else mostrarCategorias = false
+                        if(origem != "" && destino != ""){
+                            if(isSOS){
+                                mostrarCategorias = true
+                            }else{
+                                //Depois pensar em como passar o id do prestador quando ser um SOS
+                                navController.navigate(route = "home/cliente/servico_status/1/${isSOS}")
+                            }
+                        }
                     },
                     modifier = Modifier
                         .width(200.dp)
@@ -2052,36 +2079,38 @@ fun ConfigurarPedidoSOSScreen(navController: NavController) {
                 }
             }
 
-            item {
-                AnimatedVisibility(visible = mostrarCategorias) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Divider(modifier = Modifier.padding(vertical = 24.dp), color = AppColors.PrimaryRed, thickness = 2.dp)
+            if(isSOS){
+                item {
+                    AnimatedVisibility(visible = mostrarCategorias) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Divider(modifier = Modifier.padding(vertical = 24.dp), color = AppColors.PrimaryRed, thickness = 2.dp)
 
-                        Text(
-                            text = "Selecione a categoria do pedido",
-                            fontFamily = fontFamily,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 16.dp),
-                            fontSize = 18.sp
-                        )
+                            Text(
+                                text = "Selecione a categoria do pedido",
+                                fontFamily = fontFamily,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 16.dp),
+                                fontSize = 18.sp
+                            )
 
-                        OutlinedTextField(
-                            value = pesquisa,
-                            onValueChange = { pesquisa = it },
-                            placeholder = { Text("Pesquisar Categoria") },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = CircleShape,
-                            leadingIcon = { Icon(painterResource(R.drawable.search), contentDescription = null) }
-                        )
+                            OutlinedTextField(
+                                value = pesquisa,
+                                onValueChange = { pesquisa = it },
+                                placeholder = { Text("Pesquisar Categoria") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = CircleShape,
+                                leadingIcon = { Icon(painterResource(R.drawable.search), contentDescription = null) }
+                            )
+                        }
                     }
                 }
-            }
 
-            if (mostrarCategorias) {
-                items(categoriasFiltradas) { categoria ->
-                    CardCategoria(categoriaPedido = categoria, onClick = {
-                        cardState = true
-                    })
+                if (mostrarCategorias) {
+                    items(categoriasFiltradas) { categoria ->
+                        CardCategoria(categoriaPedido = categoria, onClick = {
+                            cardState = true
+                        })
+                    }
                 }
             }
 
@@ -2090,7 +2119,7 @@ fun ConfigurarPedidoSOSScreen(navController: NavController) {
             CardConfirmacao(
                 pergunta = "Iniciar Busca?",
                 onBackClick = {cardState = false},
-                onConfirmClick = { /*NavController irá navegar*/}
+                onConfirmClick = { navController.navigate(route = "home/cliente/servico_status/1/true")}
             )
         }
 
@@ -2098,7 +2127,7 @@ fun ConfigurarPedidoSOSScreen(navController: NavController) {
 }
 
 @Composable
-fun CardBuscandoPrestador(cancelarOnClick: () -> Unit, modifier: Modifier = Modifier) {
+fun CardBuscandoPrestador(cancelarOnClick: () -> Unit, modifier: Modifier = Modifier, isSOS: Boolean) {
     val progresso = remember { Animatable(1f) }
     var resetKey by remember { mutableStateOf(0) }
 
@@ -2120,8 +2149,8 @@ fun CardBuscandoPrestador(cancelarOnClick: () -> Unit, modifier: Modifier = Modi
     ){
         Card(
             modifier = modifier.fillMaxWidth()
-                .align(Alignment.BottomCenter),
-            shape = RoundedCornerShape(16.dp),
+                .align(Alignment.BottomCenter)
+                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
@@ -2130,6 +2159,15 @@ fun CardBuscandoPrestador(cancelarOnClick: () -> Unit, modifier: Modifier = Modi
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Text(
+                    text = if(isSOS) "Aguardando Resposta dos Prestadores Próximos" else "Aguardando Resposta do Prestador",
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.DarkBlue,
+                    fontSize = 18.sp,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(25.dp))
                 LinearProgressIndicator(
                     progress = {progresso.value},
                     modifier = Modifier
@@ -2140,14 +2178,19 @@ fun CardBuscandoPrestador(cancelarOnClick: () -> Unit, modifier: Modifier = Modi
                     color = Color.Red
                 )
 
-                Spacer(modifier = Modifier.height(40.dp))
+                if(isSOS){
+                    Spacer(modifier = Modifier.height(40.dp))
 
-                AddressTimeline(
-                    origin = "R. João Blesa - 45. Alphaville",
-                    destination = "R. João Blesa - 45. Alphaville"
-                )
+                    //Depois tem que fazer essa funcao receber o endereco
+                    AddressTimeline(
+                        origin = "R. João Blesa - 45. Alphaville",
+                        destination = "R. João Blesa - 45. Alphaville"
+                    )
 
-                Spacer(modifier = Modifier.height(50.dp))
+                    Spacer(modifier = Modifier.height(50.dp))
+                }else{
+                    Spacer(modifier = Modifier.height(50.dp))
+                }
 
                 Button(
                     onClick = cancelarOnClick,
@@ -2170,6 +2213,108 @@ fun CardBuscandoPrestador(cancelarOnClick: () -> Unit, modifier: Modifier = Modi
                     )
                 }
             }
+        }
+    }
+}
+
+
+//PRESTADOR
+
+@Composable
+fun HomePrestadorScreen(navController: NavController) {
+    var isListVisible by remember { mutableStateOf(false) }
+
+    val progresso = remember { Animatable(1f) }
+    var resetKey by remember { mutableStateOf(0) }
+
+    LaunchedEffect(resetKey) {
+        progresso.snapTo(0f)
+        progresso.animateTo(
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 3 * 60 * 1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            )
+        )
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF0F4F7))) {
+            Text("O mapa será implementado aqui", modifier = Modifier.align(Alignment.Center))
+        }
+
+        Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+            if (!isListVisible) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    FloatingActionButton(
+                        onClick = { isListVisible = true },
+                        containerColor = Color(0xFFB34B44),
+                        contentColor = Color.White,
+                        shape = CircleShape,
+                        elevation = FloatingActionButtonDefaults.elevation(8.dp)
+                    ) {
+                        Icon(painterResource(R.drawable.outline_keyboard_double_arrow_up_24), contentDescription = "Subir")
+                    }
+                }
+            }
+
+            if (isListVisible) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.6f)
+                        .padding(horizontal = 20.dp),
+                    shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                    color = Color.White,
+                    shadowElevation = 16.dp
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        IconButton(
+                            onClick = { isListVisible = false },
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        ) {
+                            Icon(painterResource(R.drawable.outline_keyboard_double_arrow_down_24), contentDescription = "Descer", tint = Color.Gray)
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Mostrando solicitações próximas a você", fontSize = 12.sp, color = Color.Gray)
+                            IconButton(
+                                onClick = {resetKey++}
+                            ) {
+                                Icon(painterResource(R.drawable.baseline_refresh_24), contentDescription = null, modifier = Modifier.size(20.dp))
+                            }
+                        }
+
+                        LinearProgressIndicator(
+                            progress = {progresso.value},
+                            modifier = Modifier
+                                .fillMaxWidth(0.8f)
+                                .height(4.dp),
+                            color = Color.Red
+                        )
+
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        LazyColumn {
+                            items(5) {
+                                CardCliente(name = "Rogerio", distance = "423m de distancia")
+                            }
+                        }
+                    }
+                }
+            }
+
+            BottomPrestadorBar(navController = navController)
         }
     }
 }

@@ -1,11 +1,13 @@
 package com.example.drivez.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,9 +16,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,7 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.drivez.ConfigurarPedidoSOSScreen
+import coil3.compose.AsyncImage
+import com.example.drivez.ConfigurarPedidoScreen
 import com.example.drivez.R
 import com.example.drivez.fontFamily
 import com.example.drivez.data.model.BottomNavItem
@@ -116,7 +121,7 @@ fun BottomClienteBar(navController: NavController, shadow: Boolean = true) {
         }
         FloatingActionButton(
             onClick = {
-                navController.navigate(route = "home/cliente/pedido_sos")
+                navController.navigate(route = "home/cliente/pedido/true")
             },
             containerColor = Color(0xFFE53935),
             contentColor = Color.White,
@@ -133,6 +138,53 @@ fun BottomClienteBar(navController: NavController, shadow: Boolean = true) {
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
+        }
+    }
+}
+
+@Composable
+fun BottomPrestadorBar(navController: NavController) {
+
+    val items = listOf(
+        BottomNavItem("home/cliente", R.drawable.baseline_home_24, "Home"),
+        BottomNavItem("home/cliente/contatos", R.drawable.baseline_chat_bubble_24, "Chat"),
+        BottomNavItem("home/cliente/historico", R.drawable.baseline_history_24, "Histórico"),
+        BottomNavItem("home/cliente/perfil", R.drawable.baseline_person_24, "Perfil")
+    )
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shadowElevation = 8.dp,
+        tonalElevation = 0.dp,
+        color = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp)
+                .navigationBarsPadding(),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { /* Navegar Home */ }) {
+                Icon(painterResource(items[0].icon), contentDescription = null, tint = Color(0xFFD14D45))
+            }
+            IconButton(onClick = { /* Navegar Chat */ }) {
+                Icon(painterResource(items[1].icon), contentDescription = null, tint = Color.Gray)
+            }
+            IconButton(onClick = { /* Navegar History */ }) {
+                Icon(painterResource(items[2].icon), contentDescription = null, tint = Color.Gray)
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(35.dp)
+                    .border(1.dp, Color.LightGray, CircleShape)
+                    .padding(4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(painterResource(items[3].icon), contentDescription = null, tint = Color.Black)
+            }
         }
     }
 }
