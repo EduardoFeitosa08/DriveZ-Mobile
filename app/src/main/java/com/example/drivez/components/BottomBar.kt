@@ -1,6 +1,7 @@
 package com.example.drivez.components
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -145,11 +146,14 @@ fun BottomClienteBar(navController: NavController, shadow: Boolean = true) {
 @Composable
 fun BottomPrestadorBar(navController: NavController) {
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val rotaAtual = navBackStackEntry?.destination?.route
+
     val items = listOf(
-        BottomNavItem("home/cliente", R.drawable.baseline_home_24, "Home"),
-        BottomNavItem("home/cliente/contatos", R.drawable.baseline_chat_bubble_24, "Chat"),
-        BottomNavItem("home/cliente/historico", R.drawable.baseline_history_24, "Histórico"),
-        BottomNavItem("home/cliente/perfil", R.drawable.baseline_person_24, "Perfil")
+        BottomNavItem("home/prestador", R.drawable.baseline_home_24, "Home"),
+        BottomNavItem("home/prestador/contatos", R.drawable.baseline_chat_bubble_24, "Chat"),
+        BottomNavItem("home/prestador/historico", R.drawable.baseline_history_24, "Histórico"),
+        BottomNavItem("home/prestador/perfil", R.drawable.baseline_person_24, "Perfil")
     )
 
     Surface(
@@ -166,24 +170,42 @@ fun BottomPrestadorBar(navController: NavController) {
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { /* Navegar Home */ }) {
-                Icon(painterResource(items[0].icon), contentDescription = null, tint = Color(0xFFD14D45))
-            }
-            IconButton(onClick = { /* Navegar Chat */ }) {
-                Icon(painterResource(items[1].icon), contentDescription = null, tint = Color.Gray)
-            }
-            IconButton(onClick = { /* Navegar History */ }) {
-                Icon(painterResource(items[2].icon), contentDescription = null, tint = Color.Gray)
-            }
-
-            Box(
+            NavigationBar(
+                containerColor = Color.White,
+                tonalElevation = 0.dp,
                 modifier = Modifier
-                    .size(35.dp)
-                    .border(1.dp, Color.LightGray, CircleShape)
-                    .padding(4.dp),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
             ) {
-                Icon(painterResource(items[3].icon), contentDescription = null, tint = Color.Black)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    items.forEachIndexed { index, item ->
+                        if(index == 2){
+                            Spacer(modifier = Modifier.width(60.dp))
+                        }
+
+                        NavigationBarItem(
+                            selected = rotaAtual == item.route,
+                            onClick = {
+                                navController.navigate("${item.route}")
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(item.icon),
+                                    contentDescription = item.label,
+                                    modifier = Modifier.size(30.dp)
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Color(0xFFE53935),
+                                unselectedIconColor = Color.Gray,
+                                indicatorColor = Color.Transparent
+                            )
+                        )
+                    }
+                }
             }
         }
     }

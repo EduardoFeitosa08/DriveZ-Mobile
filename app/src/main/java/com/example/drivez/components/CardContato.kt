@@ -31,7 +31,7 @@ import com.example.drivez.fontFamily
 import com.example.drivez.ui.theme.AppColors
 
 @Composable
-fun CardContato(contato: Contato, navController: NavController) {
+fun PrestadorCardContato(contato: Contato, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -39,6 +39,66 @@ fun CardContato(contato: Contato, navController: NavController) {
             .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(15.dp))
             .clickable{
                 navController.navigate(route = "home/cliente/contatos/conversa/${contato.id}")
+            },
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 10.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.CardBackground
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 15.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(15.dp)
+        ) {
+            AsyncImage(
+                model = "${contato.perfilImgUrl}",
+                placeholder = painterResource(R.drawable.baseline_person_24),
+                error = painterResource(R.drawable.baseline_person_24),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(70.dp)
+                    .clip(RoundedCornerShape(100))
+                    .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100)),
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(1f),
+            ) {
+                Text(
+                    text = contato.name,
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppColors.SecondaryRed,
+                    fontSize = 22.sp
+                )
+                Text(
+                    text = contato.ultimaMensagem,
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppColors.DarkBlue,
+                    fontSize = 14.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ClienteCardContato(contato: Contato, navController: NavController) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(15.dp))
+            .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(15.dp))
+            .clickable{
+                navController.navigate(route = "home/prestador/contatos/conversa/${contato.id}")
             },
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
