@@ -1,5 +1,6 @@
 package com.example.drivez
 
+import MenuSelecao
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -110,6 +111,7 @@ import com.example.drivez.components.AddressTimeline
 import com.example.drivez.components.AplicationTopBar
 import com.example.drivez.components.Avaliacao
 import com.example.drivez.components.BalaoChat
+import com.example.drivez.components.BotaoAceitarArrastavel
 import com.example.drivez.components.BotaoFlutuante
 import com.example.drivez.components.BottomClienteBar
 import com.example.drivez.components.BottomPrestadorBar
@@ -124,6 +126,7 @@ import com.example.drivez.components.PrestadorCardContato
 import com.example.drivez.components.TituloCampo
 import com.example.drivez.data.model.Categoria
 import com.example.drivez.data.model.CategoriaPedido
+import com.example.drivez.data.model.CategoriaServico
 import com.example.drivez.data.model.Cliente
 import com.example.drivez.data.model.Contato
 import com.example.drivez.data.model.Mensagem
@@ -132,6 +135,7 @@ import com.example.drivez.data.model.Prestador
 import com.example.drivez.data.model.RemetenteMensagem
 import com.example.drivez.data.model.StatusMensagem
 import com.example.drivez.data.model.StatusPedido
+import com.example.drivez.data.model.TipoVeiculo
 import com.example.drivez.ui.theme.AppColors
 import com.example.drivez.util.FormatarData
 
@@ -219,6 +223,14 @@ class MainActivity : ComponentActivity() {
                             val clienteId = it.arguments?.getString("clienteId")
                             DetalhesSolicitacaoScreen(navController = navController, clienteId = clienteId!!)
                         }
+                        composable(
+                            route = "home/prestador/detalhes_solicitacao/emergencia/{clienteId}",
+                            arguments = listOf(navArgument("clienteId") { type = NavType.StringType })
+                        ) {
+                            val clienteId = it.arguments?.getString("clienteId")
+                            DetalhesSolicitacaoEmergenciaScreen(navController = navController, clienteId = clienteId!!,
+                                onCorridaAceita = {})
+                        }
 
                         composable(
                             route = "home/prestador/servico_status/{clienteId}/",
@@ -250,6 +262,10 @@ class MainActivity : ComponentActivity() {
                         ) {
                             val contatoId = it.arguments?.getString("contatoId")
                             PrestadorConversaScreen(navController = navController, contatoId = contatoId!!)
+                        }
+
+                        composable("home/prestador/perfil") {
+                            PrestadorPerfilScreen(navController = navController)
                         }
 
                     }
@@ -315,10 +331,10 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
                 Button(
                     onClick = {
                         //Depois alterar para somente logar depois de validar os dados
-//                        navController.navigate(route = "home/cliente")
+                        navController.navigate(route = "home/cliente")
 
                         //Depois fazer a validacao para saber se o usuario é um cliente ou prestador
-                        navController.navigate(route = "home/prestador")
+//                        navController.navigate(route = "home/prestador")
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -2869,6 +2885,13 @@ fun PrestadorPerfilScreen(navController: NavController) {
 
     var imagemSelecionada by rememberSaveable { mutableStateOf<Uri?>(null) }
 
+    var descricaoState by remember { mutableStateOf("") }
+
+    var tipoVeiculoSelecionado by remember { mutableStateOf<TipoVeiculo?>(TipoVeiculo.CARRO) }
+
+    var servico1 by remember { mutableStateOf<CategoriaServico?>(CategoriaServico.BORRACHARIA) }
+    var servico2 by remember { mutableStateOf<CategoriaServico?>(null) } // Opcional
+
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri: Uri? -> imagemSelecionada = uri }
@@ -2966,6 +2989,26 @@ fun PrestadorPerfilScreen(navController: NavController) {
                     color = Color.Black,
                     fontSize = 25.sp
                 )
+                OutlinedTextField(
+                    value = descricaoState,
+                    onValueChange = {descricaoState = it},
+                    placeholder = {
+                        Text(
+                            text = "Descrição do Serviço",
+                            fontFamily = fontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                        .height(150.dp),
+                    singleLine = false,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = AppColors.BackgroundGray,
+                        focusedContainerColor = AppColors.BackgroundGray
+                    )
+                )
                 Card(
                     modifier = Modifier
                         .border(1.dp, AppColors.BorderGray, RoundedCornerShape(15.dp)),
@@ -3046,57 +3089,319 @@ fun PrestadorPerfilScreen(navController: NavController) {
                             .padding(end = 40.dp, bottom = 40.dp)
                     )
                 }
-                Text(
-                    text = "Salvar Alterações?",
-                    fontFamily = fontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Black,
-                    fontSize = 25.sp
+//                Card(
+//                    modifier = Modifier
+//                        .border(1.dp, AppColors.BorderGray, RoundedCornerShape(15.dp)),
+//                    shape = RoundedCornerShape(15.dp),
+//                    colors = CardDefaults.cardColors(
+//                        containerColor = AppColors.CardBackground,
+//                    ),
+//                    elevation = CardDefaults.cardElevation(
+//                        defaultElevation = 10.dp
+//                    )
+//                ){
+//                    Column(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .fillMaxHeight()
+//                            .padding(vertical = 20.dp, horizontal = 20.dp),
+//                        verticalArrangement = Arrangement.spacedBy(20.dp)
+//                    ) {
+//                        Text(
+//                            text = "Dados do Veículo",
+//                            fontFamily = fontFamily,
+//                            color = Color.Black,
+//                            fontWeight = FontWeight.Bold,
+//                            fontSize = 20.sp
+//                        )
+//
+//                        CampoDigitar(campoNome = "Data de Validade", alteravel = true)
+//
+//                        MenuSelecao(
+//                            campoNome = "Categoria do Veículo",
+//                            itens = TipoVeiculo.values().toList(),
+//                            itemPreSelecionado = tipoVeiculoSelecionado,
+//                            labelProvider = { it.descricao },
+//                            onItemSelecionado = { tipoVeiculoSelecionado = it },
+//                            modifier = Modifier.fillMaxWidth()
+//                        )
+//
+//                        CampoDigitar(campoNome = "Código Renavam", alteravel = true)
+//
+//                        CampoDigitar(campoNome = "Placa do Veículo", alteravel = true)
+//                    }
+//                }
+                Card(
+                    modifier = Modifier
+                        .border(1.dp, AppColors.BorderGray, RoundedCornerShape(15.dp)),
+                    shape = RoundedCornerShape(15.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = AppColors.CardBackground,
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 10.dp
+                    )
+                ){
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight()
+                            .padding(vertical = 20.dp, horizontal = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        Text(
+                            text = "Categorias de Serviço",
+                            fontFamily = fontFamily,
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+
+                        MenuSelecao(
+                            campoNome = "Categoria 1",
+                            itens = CategoriaServico.values().toList(),
+                            itemPreSelecionado = servico1,
+                            labelProvider = { it.nome },
+                            onItemSelecionado = { servico1 = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        MenuSelecao(
+                            campoNome = "Categoria 2 (Opcional)",
+                            itens = CategoriaServico.values().filter { it != servico1 },
+                            itemPreSelecionado = servico2,
+                            labelProvider = { it.nome },
+                            onItemSelecionado = { servico2 = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+
+                }
+//                if(dadosAlterados){
+//                    Text(
+//                        text = "Salvar Alterações?",
+//                        fontFamily = fontFamily,
+//                        fontWeight = FontWeight.SemiBold,
+//                        color = Color.Black,
+//                        fontSize = 25.sp
+//                    )
+//                    Row(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.Center
+//                    ) {
+//                        Button(
+//                            onClick = {},
+//                            colors = ButtonDefaults.buttonColors(
+//                                containerColor = AppColors.SecondaryRed,
+//                                contentColor = Color.White
+//                            ),
+//                            modifier = Modifier
+//                                .height(50.dp),
+//                            shape = RoundedCornerShape(20.dp)
+//                        ) {
+//                            Text(
+//                                text = "Cancelar",
+//                                fontFamily = fontFamily,
+//                                fontWeight = FontWeight.SemiBold,
+//                                color = Color.White,
+//                                fontSize = 16.sp
+//                            )
+//                        }
+//                        Spacer(modifier = Modifier.width(30.dp))
+//                        Button(
+//                            onClick = {},
+//                            colors = ButtonDefaults.buttonColors(
+//                                containerColor = AppColors.ConfirmGreen,
+//                                contentColor = Color.White
+//                            ),
+//                            modifier = Modifier
+//                                .height(50.dp),
+//                            shape = RoundedCornerShape(20.dp)
+//                        ) {
+//                            Text(
+//                                text = "Confirmar",
+//                                fontFamily = fontFamily,
+//                                fontWeight = FontWeight.SemiBold,
+//                                color = Color.White,
+//                                fontSize = 16.sp
+//                            )
+//                        }
+//                    }
+//                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DetalhesSolicitacaoEmergenciaScreen(onCorridaAceita: () -> Unit, clienteId: String, navController: NavController) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Box() {
+                        IconButton(
+                            onClick = {navController.popBackStack()},
+                            modifier = Modifier.align(Alignment.TopStart)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.baseline_arrow_back_24),
+                                contentDescription = "Voltar",
+                                tint = AppColors.DarkBlue,
+                                modifier = Modifier.size(50.dp)
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                                .align(Alignment.Center)
+                        ) {
+                            Text(
+                                text = "🚨",
+                                fontSize = 22.sp
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Text(
+                                text = "Emergência",
+                                color = AppColors.PrimaryRed,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp,
+                                fontFamily = fontFamily
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+            )
+        },
+        bottomBar = {
+            BottomPrestadorBar(navController = navController)
+        },
+        containerColor = Color.White
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 25.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Column() {
+                Box(
+                    modifier = Modifier
+                        .size(150.dp)
+                        .border(2.dp, Color(0xFF6D6D6D), CircleShape)
+                        .padding(4.dp)
                 ) {
-                    Button(
-                        onClick = {},
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = AppColors.SecondaryRed,
-                            contentColor = Color.White
-                        ),
+                    Image(
+                        painter = painterResource(R.drawable.baseline_person_24),
+                        contentDescription = "Foto do Cliente",
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .height(50.dp),
-                        shape = RoundedCornerShape(20.dp)
-                    ) {
-                        Text(
-                            text = "Cancelar",
-                            fontFamily = fontFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            fontSize = 16.sp
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(30.dp))
-                    Button(
-                        onClick = {},
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = AppColors.ConfirmGreen,
-                            contentColor = Color.White
-                        ),
-                        modifier = Modifier
-                            .height(50.dp),
-                        shape = RoundedCornerShape(20.dp)
-                    ) {
-                        Text(
-                            text = "Confirmar",
-                            fontFamily = fontFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            fontSize = 16.sp
-                        )
-                    }
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Avaliacao(3.0, 25.dp, 3.dp)
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Rogerio",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+            }
+
+//            Spacer(modifier = Modifier.height(32.dp))
+
+            Column() {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "Origem:",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.DarkBlue
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Rodovia dos Bandeirantes, KM 152",
+                        fontSize = 15.sp,
+                        color = Color.Black
+                    )
+                }
+
+//            Spacer(modifier = Modifier.height(24.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "Destino:",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.DarkBlue
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Centro Automotivo Porto, Rua das Flores, 500.",
+                        fontSize = 15.sp,
+                        color = Color.Black,
+                        lineHeight = 20.sp
+                    )
+                }
+
+//            Spacer(modifier = Modifier.height(24.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "Descrição:",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.DarkBlue
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Range Rover Evoque, Perda Total",
+                        fontSize = 15.sp,
+                        color = Color.Black,
+                        lineHeight = 20.sp
+                    )
                 }
             }
+
+//            Spacer(modifier = Modifier.height(40.dp))
+
+            BotaoAceitarArrastavel(
+                modifier = Modifier.padding(bottom = 32.dp),
+                onAccept = {
+                    onCorridaAceita()
+                }
+            )
         }
     }
 }

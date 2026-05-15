@@ -37,7 +37,7 @@ fun CardCliente(cliente: Cliente ,navController: NavController, ) {
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable {
-                navController.navigate("home/prestador/detalhes_solicitacao/${cliente.id}")
+                navController.navigate("home/prestador/detalhes_solicitacao/emergencia/${cliente.id}")
             },
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, Color(0xFFEEEEEE)),
