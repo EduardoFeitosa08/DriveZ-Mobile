@@ -16,4 +16,6 @@ object AppColors {
     val TextWhite = Color(0xFFFFFFFF)
     val ConfirmGreen = Color(0xFF35DA28)
     val BackgroundConversaYellow = Color(0xFFFFFEE8)
+
+    val LinkBlue = Color(0xFF5686E1)
 }

@@ -99,9 +99,9 @@ fun AplicationTopBar(navController: NavController, titulo: String = "", retornav
                                     .weight(1f)
                             )
 
-                            IconButton(onClick = { }) {
+                            IconButton(onClick = { navController.navigate(route = "home/prestador/perfil/garagem/1")}) {
                                 Icon(
-                                    painter = painterResource(R.drawable.garage),
+                                    painter = painterResource(R.drawable.ic_garagem_virtual),
                                     contentDescription = "Garagem Virtual",
                                     tint = iconColor,
                                     modifier = Modifier.size(40.dp)

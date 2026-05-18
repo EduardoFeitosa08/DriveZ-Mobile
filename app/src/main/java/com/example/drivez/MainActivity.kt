@@ -102,6 +102,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -121,6 +123,7 @@ import com.example.drivez.components.CardCategoria
 import com.example.drivez.components.CardCliente
 import com.example.drivez.components.CardConfirmacao
 import com.example.drivez.components.CardServicoStatus
+import com.example.drivez.components.CardVeiculo
 import com.example.drivez.components.ClienteCardContato
 import com.example.drivez.components.PrestadorCardContato
 import com.example.drivez.components.TituloCampo
@@ -136,8 +139,10 @@ import com.example.drivez.data.model.RemetenteMensagem
 import com.example.drivez.data.model.StatusMensagem
 import com.example.drivez.data.model.StatusPedido
 import com.example.drivez.data.model.TipoVeiculo
+import com.example.drivez.data.model.Veiculo
 import com.example.drivez.ui.theme.AppColors
 import com.example.drivez.util.FormatarData
+import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
@@ -268,6 +273,14 @@ class MainActivity : ComponentActivity() {
                             PrestadorPerfilScreen(navController = navController)
                         }
 
+                        composable(
+                            "home/prestador/perfil/garagem/{prestadorId}",
+                            arguments = listOf(navArgument("prestadorId") { type = NavType.StringType })
+                        ) {
+                            val prestadorId = it.arguments?.getString("prestadorId")
+                            PrestadorGaragemVirtualScreen(navController = navController, prestadorId = prestadorId!!)
+                        }
+
                     }
                 }
             }
@@ -331,7 +344,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
                 Button(
                     onClick = {
                         //Depois alterar para somente logar depois de validar os dados
-                        navController.navigate(route = "home/cliente")
+                        navController.navigate(route = "home/prestador")
 
                         //Depois fazer a validacao para saber se o usuario é um cliente ou prestador
 //                        navController.navigate(route = "home/prestador")
@@ -3402,6 +3415,166 @@ fun DetalhesSolicitacaoEmergenciaScreen(onCorridaAceita: () -> Unit, clienteId: 
                     onCorridaAceita()
                 }
             )
+        }
+    }
+}
+
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun ClienteGaragemVirtualScreen(navController: NavController) {
+//    val listaVeiculosFake = remember {
+//        mutableStateListOf(
+//            Veiculo(1, "Veiculo 1", "ABC-1D23", "12345678910", "25/01/2026", "SEDAN"),
+//            Veiculo(2, "Veiculo 2", "XYZ-9M87", "98765432100", "15/08/2027", "GUINCHO"),
+//            Veiculo(3, "Veiculo 1", "ABC-1D23", "12345678910", "25/01/2026", "SEDAN"),
+//            Veiculo(4, "Veiculo 2", "XYZ-9M87", "98765432100", "15/08/2027", "GUINCHO"),
+//            Veiculo(5, "Veiculo 1", "ABC-1D23", "12345678910", "25/01/2026", "SEDAN"),
+//            Veiculo(6, "Veiculo 2", "XYZ-9M87", "98765432100", "15/08/2027", "GUINCHO")
+//        )
+//    }
+//
+//    Scaffold(
+//        topBar = {
+//            TopAppBar(
+//                title = {
+//                    Text("Minha Garagem", color = Color.White, fontWeight = FontWeight.Bold)
+//                },
+//                navigationIcon = {
+//                    IconButton(onClick = { /* Navegar para trás */ }) {
+//                        Icon(painterResource(R.drawable.baseline_arrow_back_24), contentDescription = "Voltar", tint = Color.White)
+//                    }
+//                },
+//                actions = {
+//                    IconButton(onClick = { /* Adicionar novo veículo */ }) {
+//                        Icon(painterResource(R.drawable.ic_plus), contentDescription = "Adicionar", tint = Color.White)
+//                    }
+//                },
+//                colors = TopAppBarDefaults.topAppBarColors(
+//                    containerColor = Color(0xFFB73A3A) // Mesma cor vermelha do topo
+//                )
+//            )
+//        }
+//    ) { paddingValues ->
+//        LazyColumn(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .background(Color(0xFFF5F5F5))
+//                .padding(paddingValues)
+//                .padding(horizontal = 16.dp),
+//            contentPadding = PaddingValues(bottom = 80.dp)
+//        ) {
+//            items(listaVeiculosFake, key = { it.id }) { veiculo ->
+//                CardVeiculo(
+//                    veiculo = veiculo,
+//                    onSalvarAlteracoes = { veiculoAtualizado ->
+//                        val index = listaVeiculosFake.indexOfFirst { it.id == veiculoAtualizado.id }
+//                        if (index != -1) {
+//                            listaVeiculosFake[index] = veiculoAtualizado
+//                        }
+//                    }
+//                )
+//            }
+//        }
+//    }
+//}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PrestadorGaragemVirtualScreen(navController: NavController, prestadorId: String) {
+    val listaVeiculosFake = remember {
+        mutableStateListOf(
+            Veiculo(1, "Veiculo 1", "ABC-1D23", "12345678910", "25/01/2026", "SEDAN"),
+            Veiculo(2, "Veiculo 2", "XYZ-9M87", "98765432100", "15/08/2027", "GUINCHO"),
+            Veiculo(3, "Veiculo 3", "ABC-1D23", "12345678910", "25/01/2026", "SEDAN"),
+            Veiculo(4, "Veiculo 4", "XYZ-9M87", "98765432100", "15/08/2027", "GUINCHO"),
+            Veiculo(5, "Veiculo 5", "ABC-1D23", "12345678910", "25/01/2026", "SEDAN"),
+            Veiculo(6, "Veiculo 6", "XYZ-9M87", "98765432100", "15/08/2027", "GUINCHO")
+        )
+    }
+
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("Minha Garagem", color = Color.White, fontWeight = FontWeight.Bold)
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_arrow_back_24),
+                            contentDescription = "Voltar",
+                            tint = Color.White,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        val jaTemItemEmEdicao = listaVeiculosFake.any { it.id == null }
+                        if (!jaTemItemEmEdicao) {
+                            listaVeiculosFake.add(0, Veiculo.criarNovoVazio())
+                        }
+
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(index = 0)
+                        }
+                    }) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_plus),
+                            contentDescription = "Adicionar",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = AppColors.PrimaryRed
+                )
+            )
+        },
+        bottomBar = {
+            BottomPrestadorBar(navController = navController)
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF5F5F5))
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp)
+        ) {
+            items(listaVeiculosFake, key = { "${it.id}_${it.placa}" }) { veiculo ->
+                CardVeiculo(
+                    veiculo = veiculo,
+                    onSalvarAlteracoes = { veiculoAtualizado ->
+                        val index = if (veiculo.id == null) {
+                            listaVeiculosFake.indexOfFirst { it.id == null }
+                        } else {
+                            listaVeiculosFake.indexOfFirst { it.id == veiculo.id }
+                        }
+
+                        if (index != -1) {
+                            listaVeiculosFake[index] = veiculoAtualizado
+                        }
+
+                        //View Model será chamada aqui
+                    },
+                    onCancelarEdicao = {
+                        if (veiculo.id == null) {
+                            listaVeiculosFake.remove(veiculo)
+                        }
+                    },
+                    onRemoverVeiculo = { veiculoParaRemover ->
+                        listaVeiculosFake.remove(veiculoParaRemover)
+
+                        //View Model será chamada aqui
+                    }
+                )
+            }
         }
     }
 }
