@@ -177,7 +177,7 @@ class MainActivity : ComponentActivity() {
                             ServicoScreen(navController = navController, prestadorId = prestadorId!!)
                         }
                         composable("home/cliente/historico"){
-                            RegistroDePedidosScreen(navController = navController)
+                            ClienteRegistroDePedidosScreen(navController = navController)
                         }
                         composable("home/cliente/contatos") {
                             ContatosClienteScreen(navController = navController)
@@ -213,6 +213,14 @@ class MainActivity : ComponentActivity() {
                         ){
                             val isSOS = it.arguments?.getBoolean("isSOS")
                             ConfigurarPedidoScreen(navController = navController, isSOS!!)
+                        }
+
+                        composable(
+                            "home/cliente/perfil/garagem/{clienteId}",
+                            arguments = listOf(navArgument("clienteId") { type = NavType.StringType })
+                        ) {
+                            val clienteId = it.arguments?.getString("clienteId")
+                            ClienteGaragemVirtualScreen(navController = navController, clienteId = clienteId!!)
                         }
 
                         //Prestador
@@ -279,6 +287,10 @@ class MainActivity : ComponentActivity() {
                         ) {
                             val prestadorId = it.arguments?.getString("prestadorId")
                             PrestadorGaragemVirtualScreen(navController = navController, prestadorId = prestadorId!!)
+                        }
+
+                        composable("home/prestador/historico"){
+                            PrestadorRegistroDePedidosScreen(navController = navController)
                         }
 
                     }
@@ -1015,7 +1027,7 @@ fun ServicoScreen(navController: NavController, prestadorId: String) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun RegistroDePedidosScreen(navController: NavController) {
+fun ClienteRegistroDePedidosScreen(navController: NavController) {
 
     val listaDePedidos = listOf(
         Pedido(1, StatusPedido.PENDENTE, "2026-04-24 09:00", "Av. Paulista, 1000", "Rua Augusta, 200", "Entrega de documentos", "2.5 km", 101, 201),
@@ -1043,7 +1055,7 @@ fun RegistroDePedidosScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             items(listaDePedidos){ pedido ->
-                CardHistoricoPedido(pedido)
+                ClienteCardHistoricoPedido(pedido)
             }
         }
     }
@@ -1051,7 +1063,7 @@ fun RegistroDePedidosScreen(navController: NavController) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun CardHistoricoPedido(pedido: Pedido, modifier: Modifier = Modifier) {
+fun ClienteCardHistoricoPedido(pedido: Pedido, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -1656,7 +1668,7 @@ fun ClientePerfilScreen(navController: NavController) {
                 }
                 Avaliacao(4.0, 30.dp, 3.dp)
                 Text(
-                    text = "João Belson",
+                    text = "Nome do Usuario",
                     fontFamily = fontFamily,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.Black,
@@ -2295,6 +2307,108 @@ fun CardBuscandoPrestador(cancelarOnClick: () -> Unit, modifier: Modifier = Modi
                         fontSize = 25.sp
                     )
                 }
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ClienteGaragemVirtualScreen(navController: NavController, clienteId: String) {
+    val listaVeiculosFake = remember {
+        mutableStateListOf(
+            Veiculo(1, "Veiculo 1", "ABC-1D23", "12345678910", "25/01/2026", "SEDAN"),
+            Veiculo(2, "Veiculo 2", "XYZ-9M87", "98765432100", "15/08/2027", "GUINCHO"),
+            Veiculo(3, "Veiculo 3", "ABC-1D23", "12345678910", "25/01/2026", "SEDAN"),
+            Veiculo(4, "Veiculo 4", "XYZ-9M87", "98765432100", "15/08/2027", "GUINCHO"),
+            Veiculo(5, "Veiculo 5", "ABC-1D23", "12345678910", "25/01/2026", "SEDAN"),
+            Veiculo(6, "Veiculo 6", "XYZ-9M87", "98765432100", "15/08/2027", "GUINCHO")
+        )
+    }
+
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("Minha Garagem", color = Color.White, fontWeight = FontWeight.Bold)
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_arrow_back_24),
+                            contentDescription = "Voltar",
+                            tint = Color.White,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        val jaTemItemEmEdicao = listaVeiculosFake.any { it.id == null }
+                        if (!jaTemItemEmEdicao) {
+                            listaVeiculosFake.add(0, Veiculo.criarNovoVazio())
+                        }
+
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(index = 0)
+                        }
+                    }) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_plus),
+                            contentDescription = "Adicionar",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = AppColors.PrimaryRed
+                )
+            )
+        },
+        bottomBar = {
+            BottomPrestadorBar(navController = navController)
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF5F5F5))
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp)
+        ) {
+            items(listaVeiculosFake, key = { "${it.id}_${it.placa}" }) { veiculo ->
+                CardVeiculo(
+                    veiculo = veiculo,
+                    onSalvarAlteracoes = { veiculoAtualizado ->
+                        val index = if (veiculo.id == null) {
+                            listaVeiculosFake.indexOfFirst { it.id == null }
+                        } else {
+                            listaVeiculosFake.indexOfFirst { it.id == veiculo.id }
+                        }
+
+                        if (index != -1) {
+                            listaVeiculosFake[index] = veiculoAtualizado
+                        }
+
+                        //View Model será chamada aqui
+                    },
+                    onCancelarEdicao = {
+                        if (veiculo.id == null) {
+                            listaVeiculosFake.remove(veiculo)
+                        }
+                    },
+                    onRemoverVeiculo = { veiculoParaRemover ->
+                        listaVeiculosFake.remove(veiculoParaRemover)
+
+                        //View Model será chamada aqui
+                    }
+                )
             }
         }
     }
@@ -2996,7 +3110,7 @@ fun PrestadorPerfilScreen(navController: NavController) {
                 }
                 Avaliacao(4.0, 30.dp, 3.dp)
                 Text(
-                    text = "João Belson",
+                    text = "Nome do Usuario",
                     fontFamily = fontFamily,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.Black,
@@ -3312,7 +3426,9 @@ fun DetalhesSolicitacaoEmergenciaScreen(onCorridaAceita: () -> Unit, clienteId: 
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            Column() {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Box(
                     modifier = Modifier
                         .size(150.dp)
@@ -3576,5 +3692,195 @@ fun PrestadorGaragemVirtualScreen(navController: NavController, prestadorId: Str
                 )
             }
         }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun PrestadorRegistroDePedidosScreen(navController: NavController) {
+
+    val listaDePedidos = listOf(
+        Pedido(1, StatusPedido.PENDENTE, "2026-04-24 09:00", "Av. Paulista, 1000", "Rua Augusta, 200", "Entrega de documentos", "2.5 km", 101, 201),
+        Pedido(2, StatusPedido.EM_ANDAMENTO, "2026-04-24 10:30", "Rua da Consolação, 50", "Av. Rebouças, 800", "Compra de supermercado", "4.0 km", 102, 202),
+        Pedido(3, StatusPedido.FINALIZADO, "2026-04-24 08:00", "Praça da Sé, 10", "Bairro Liberdade, 100", "Entrega de presente", "1.2 km", 103, 203),
+        Pedido(4, StatusPedido.PENDENTE, "2026-04-24 11:00", "Av. Brigadeiro, 500", "Rua Oscar Freire, 300", "Transporte de móveis", "5.8 km", 104, 204),
+        Pedido(5, StatusPedido.EM_ANDAMENTO, "2026-04-24 12:15", "Aeroporto de Congonhas", "Hotel Transamerica", "Levar bagagem", "8.5 km", 105, 205),
+        Pedido(6, StatusPedido.FINALIZADO, "2026-04-24 07:30", "Centro Histórico", "Rodoviária", "Envio de pacote urgente", "12.0 km", 106, 206)
+    )
+
+    Scaffold(
+        topBar = {
+            AplicationTopBar(navController = navController, titulo = "Registro de Pedidos", retornavel = false)
+        },
+        bottomBar = {
+            BottomPrestadorBar(navController = navController)
+        },
+        containerColor = Color.White
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(15.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            items(listaDePedidos){ pedido ->
+                PrestadorCardHistoricoPedido(pedido)
+            }
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun PrestadorCardHistoricoPedido(pedido: Pedido, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 15.dp, horizontal = 15.dp)
+            .clip(RoundedCornerShape(15.dp))
+            .border(1.dp, Color.Black, RoundedCornerShape(15.dp)),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF5F5F5),
+            contentColor = Color.Black
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp,
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 30.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = FormatarData(pedido.dataSolicitacao),
+                    fontFamily = fontFamily,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 20.dp)
+                    .border(1.dp, Color.Black, RoundedCornerShape(15.dp)),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 15.dp, end = 15.dp, top = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(15.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.outline_arrow_downward_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(30.dp)
+                            .height(40.dp),
+//                    .align(Alignment.CenterHorizontally)
+                        tint = Color.Transparent
+                    )
+                    Text(
+                        text = "Origem",
+                        fontFamily = fontFamily,
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 15.dp),
+                    horizontalArrangement = Arrangement.spacedBy(15.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(Color.Black)
+                    )
+                    Text(
+                        text = pedido.enderecoOrigem,
+                        fontFamily = fontFamily,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 15.dp),
+                    horizontalArrangement = Arrangement.spacedBy(15.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.outline_arrow_downward_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(30.dp)
+                            .height(40.dp)
+//                    .align(Alignment.CenterHorizontally)
+                    )
+                    Text(
+                        text = "Destino",
+                        fontFamily = fontFamily,
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 15.dp, end = 15.dp, bottom = 25.dp),
+                    horizontalArrangement = Arrangement.spacedBy(15.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(Color.Black)
+                    )
+                    Text(
+                        text = pedido.enderecoDestino,
+                        fontFamily = fontFamily,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 15.dp, vertical = 15.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.baseline_person_24),
+                    contentDescription = "Cliente",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .border(1.dp, Color.Black, RoundedCornerShape(100))
+                )
+                Spacer(modifier = Modifier.width(15.dp))
+                Text(
+                    text = "Cliente: Carlos Oliveira",
+                    fontFamily = fontFamily,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+
     }
 }

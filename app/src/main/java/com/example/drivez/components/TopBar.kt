@@ -38,7 +38,7 @@ import com.example.drivez.ui.theme.AppColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AplicationTopBar(navController: NavController, titulo: String = "", retornavel: Boolean = true, backgroundColor: Color = Color.White,
-                     textColor: Color = AppColors.TitleGray, iconColor: Color = AppColors.DarkBlue
+                     textColor: Color = AppColors.TitleGray, iconColor: Color = AppColors.DarkBlue, isCliente: Boolean = true
 ) {
     var contato by remember {
         mutableStateOf("")
@@ -99,7 +99,7 @@ fun AplicationTopBar(navController: NavController, titulo: String = "", retornav
                                     .weight(1f)
                             )
 
-                            IconButton(onClick = { navController.navigate(route = "home/prestador/perfil/garagem/1")}) {
+                            IconButton(onClick = { navController.navigate(route = if(isCliente) "home/cliente/perfil/garagem/1" else "home/prestador/perfil/garagem/1")}) {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_garagem_virtual),
                                     contentDescription = "Garagem Virtual",
