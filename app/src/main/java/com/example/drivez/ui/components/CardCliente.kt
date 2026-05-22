@@ -1,4 +1,4 @@
-package com.example.drivez.components
+package com.example.drivez.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.drivez.R
 import com.example.drivez.data.model.Cliente
-import com.example.drivez.ui.theme.AppColors
+import com.example.drivez.core.network.theme.AppColors
 
 @Composable
 fun CardCliente(cliente: Cliente ,navController: NavController, ) {

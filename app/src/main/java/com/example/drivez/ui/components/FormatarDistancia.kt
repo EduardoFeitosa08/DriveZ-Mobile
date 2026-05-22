@@ -1,4 +1,4 @@
-package com.example.drivez.components
+package com.example.drivez.ui.components
 
 fun formatarDistancia(distancia: Double): String {
     return if (distancia < 1.0) {

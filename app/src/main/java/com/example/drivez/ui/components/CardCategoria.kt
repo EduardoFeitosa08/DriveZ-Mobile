@@ -1,4 +1,4 @@
-package com.example.drivez.components
+package com.example.drivez.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

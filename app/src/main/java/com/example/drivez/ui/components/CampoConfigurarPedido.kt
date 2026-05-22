@@ -1,4 +1,4 @@
-package com.example.drivez.components
+package com.example.drivez.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,7 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.drivez.fontFamily
-import com.example.drivez.ui.theme.AppColors
+import com.example.drivez.core.network.theme.AppColors
 
 @Composable
 fun CampoConfigurarPedido(

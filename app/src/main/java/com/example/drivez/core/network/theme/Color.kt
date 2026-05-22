@@ -1,4 +1,4 @@
-package com.example.drivez.ui.theme
+package com.example.drivez.core.network.theme
 
 import androidx.compose.ui.graphics.Color
 

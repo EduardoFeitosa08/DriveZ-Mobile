@@ -1,6 +1,5 @@
-package com.example.drivez.components
+package com.example.drivez.ui.components
 
-import androidx.compose.animation.core.DecayAnimationSpec
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.ExperimentalFoundationApi

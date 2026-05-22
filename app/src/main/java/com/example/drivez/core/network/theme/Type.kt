@@ -1,4 +1,4 @@
-package com.example.drivez.ui.theme
+package com.example.drivez.core.network.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

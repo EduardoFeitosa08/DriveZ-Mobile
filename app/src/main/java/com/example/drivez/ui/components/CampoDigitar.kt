@@ -1,4 +1,4 @@
-package com.example.drivez.components
+package com.example.drivez.ui.components
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,14 +18,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.drivez.R
 import com.example.drivez.fontFamily
-import com.example.drivez.ui.theme.AppColors
+import com.example.drivez.core.network.theme.AppColors
 
 @Composable
 fun CampoDigitar(campoNome: String, placeholder: String = "", valorPadrao: String = "",
@@ -100,5 +97,69 @@ fun CampoDigitar(campoNome: String, placeholder: String = "", valorPadrao: Strin
             focusedContainerColor = Color.White
         ),
 
+    )
+}
+
+@Composable
+fun CadastroCampoDigitar(campoNome: String, value: String, onValueChange: (String) -> Unit,
+    placeholder: String = "", painter: Painter? = null, painterTransform: Painter? = null,
+    alteravel: Boolean = true, iconFim: Boolean = true, modifier: Modifier = Modifier
+) {
+    var iconState by remember { mutableStateOf(false) }
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = { if (alteravel) onValueChange(it) },
+        modifier = modifier
+            .fillMaxWidth()
+            .height(60.dp),
+        readOnly = !alteravel,
+        placeholder = {
+            Text(
+                text = if (placeholder.isEmpty()) campoNome else placeholder,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0XFF6D6D6D),
+                fontFamily = fontFamily
+            )
+        },
+        shape = RoundedCornerShape(15.dp),
+        trailingIcon = if (painter != null && painterTransform != null && iconFim) {
+            {
+                IconButton(
+                    onClick = { iconState = !iconState }
+                ) {
+                    Icon(
+                        painter = if (iconState) painterTransform else painter,
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp),
+                        tint = Color(0XFF6D6D6D)
+                    )
+                }
+            }
+        } else null,
+        leadingIcon = if (painter != null && painterTransform != null && !iconFim) {
+            {
+                Icon(
+                    painter = if (iconState) painterTransform else painter,
+                    contentDescription = null,
+                    modifier = Modifier.size(25.dp),
+                    tint = Color(0XFF6D6D6D)
+                )
+            }
+        } else null,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = AppColors.SecondaryRed,
+            unfocusedBorderColor = AppColors.BorderGray,
+            focusedLabelColor = AppColors.SecondaryRed,
+            unfocusedLabelColor = AppColors.PlaceholderGray,
+            focusedPlaceholderColor = AppColors.SecondaryRed,
+            unfocusedPlaceholderColor = AppColors.PlaceholderGray,
+            disabledContainerColor = Color.White,
+            focusedTextColor = AppColors.DarkBlue,
+            unfocusedTextColor = AppColors.DarkBlue,
+            unfocusedContainerColor = if (value.isNotEmpty()) Color(0xFFE6EEF8) else Color.White,
+            focusedContainerColor = Color.White
+        )
     )
 }

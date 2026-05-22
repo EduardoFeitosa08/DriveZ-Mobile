@@ -1,4 +1,4 @@
-package com.example.drivez.components
+package com.example.drivez.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.example.drivez.R
 import com.example.drivez.data.model.Veiculo
 import com.example.drivez.fontFamily
-import com.example.drivez.ui.theme.AppColors
+import com.example.drivez.core.network.theme.AppColors
 
 @Composable
 fun CardVeiculo(veiculo: Veiculo, onSalvarAlteracoes: (Veiculo) -> Unit, onCancelarEdicao: () -> Unit,

@@ -1,10 +1,8 @@
-package com.example.drivez.components
+package com.example.drivez.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.drivez.R
 import com.example.drivez.fontFamily
-import com.example.drivez.ui.theme.AppColors
+import com.example.drivez.core.network.theme.AppColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
