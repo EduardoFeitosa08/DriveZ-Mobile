@@ -83,19 +83,10 @@ fun FormularioCliente(
                 fontFamily = fontFamily,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = senhaForca.cor, // 👈 Muda a cor dinamicamente (Vermelho, Laranja ou Verde)
+                color = senhaForca.cor,
                 modifier = Modifier.padding(start = 15.dp)
             )
         }
-
-        Text(
-            text = senhaStrength,
-            fontFamily = fontFamily,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = AppColors.ErrorRed,
-            modifier = Modifier.padding(start = 15.dp)
-        )
 
         TituloCampo("Confirmação da Senha")
         CadastroCampoDigitar(

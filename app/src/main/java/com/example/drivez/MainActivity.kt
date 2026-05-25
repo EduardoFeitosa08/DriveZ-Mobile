@@ -101,6 +101,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.layout.ContentScale
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.example.drivez.ui.components.AddressTimeline
 import com.example.drivez.ui.components.AplicationTopBar
@@ -133,6 +134,9 @@ import com.example.drivez.data.model.StatusPedido
 import com.example.drivez.data.model.TipoVeiculo
 import com.example.drivez.data.model.Veiculo
 import com.example.drivez.core.network.theme.AppColors
+import com.example.drivez.ui.cadastro.CadastroScreen
+import com.example.drivez.ui.cadastro.CadastroViewModel
+import com.example.drivez.ui.login.LoginScreen
 import com.example.drivez.util.FormatarData
 import kotlinx.coroutines.launch
 
@@ -147,7 +151,6 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
                     val navController = rememberNavController()
-                    //Fazer a logica do usuario já estar logado ou não e guardar na variavel do startDestination
                     NavHost(
                         navController = navController,
                         startDestination = "login"
@@ -155,8 +158,22 @@ class MainActivity : ComponentActivity() {
                         composable("login") {
                             LoginScreen(navController = navController)
                         }
-                        composable("cadastro"){
-                            CadastroScreen(navController = navController)
+                        composable("cadastro") {
+
+                            val cadastroViewModel: CadastroViewModel = viewModel()
+
+                            CadastroScreen(
+                                navController = navController,
+                                viewModel = cadastroViewModel,
+                            )
+                        }
+
+                        composable("completar_cadastro_cliente/{userId}") { backStackEntry ->
+                            val userId = backStackEntry.arguments?.getString("userId")
+                        }
+
+                        composable("completar_cadastro_prestador/{userId}") { backStackEntry ->
+                            val userId = backStackEntry.arguments?.getString("userId")
                         }
                         composable("home/cliente"){
                             HomeClienteScreen(navController = navController)
@@ -310,344 +327,344 @@ val fontFamily = FontFamily(
 )
 
 
-@Composable
-fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
-
-    Scaffold(
-        containerColor = Color.White
-    ) { paddingValues ->
-        Column(
-            modifier = modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .background(AppColors.BackgroundGray)
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 30.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Image(
-                painter = painterResource(R.drawable.logo_login),
-                contentDescription = "DriveZ Logo",
-                modifier = Modifier
-                    .size(450.dp)
-            )
-            Spacer(modifier = Modifier.height(15.dp))
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 45.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                //TextField do Email
-                CampoDigitar(campoNome = "E-mail")
-
-                //TextField da Senha
-                CampoDigitar(campoNome = "Senha")
-
-                Button(
-                    onClick = {
-                        //Depois alterar para somente logar depois de validar os dados
-                        navController.navigate(route = "home/prestador")
-
-                        //Depois fazer a validacao para saber se o usuario é um cliente ou prestador
+//@Composable
+//fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
+//
+//    Scaffold(
+//        containerColor = Color.White
+//    ) { paddingValues ->
+//        Column(
+//            modifier = modifier
+//                .padding(paddingValues)
+//                .fillMaxSize()
+//                .background(AppColors.BackgroundGray)
+//                .verticalScroll(rememberScrollState())
+//                .padding(bottom = 30.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally,
+//        ) {
+//            Image(
+//                painter = painterResource(R.drawable.logo_login),
+//                contentDescription = "DriveZ Logo",
+//                modifier = Modifier
+//                    .size(450.dp)
+//            )
+//            Spacer(modifier = Modifier.height(15.dp))
+//            Column(
+//                modifier = Modifier
+//                    .padding(horizontal = 45.dp),
+//                verticalArrangement = Arrangement.spacedBy(20.dp),
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//
+//                //TextField do Email
+//                CampoDigitar(campoNome = "E-mail")
+//
+//                //TextField da Senha
+//                CampoDigitar(campoNome = "Senha")
+//
+//                Button(
+//                    onClick = {
+//                        //Depois alterar para somente logar depois de validar os dados
 //                        navController.navigate(route = "home/prestador")
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .clip(RoundedCornerShape(15.dp)),
-                    shape = RoundedCornerShape(15.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.PrimaryRed,
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        text = "Entrar",
-                        fontSize = 24.sp,
-                        fontFamily = fontFamily,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
+//
+//                        //Depois fazer a validacao para saber se o usuario é um cliente ou prestador
+////                        navController.navigate(route = "home/prestador")
+//                    },
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(60.dp)
+//                        .clip(RoundedCornerShape(15.dp)),
+//                    shape = RoundedCornerShape(15.dp),
+//                    colors = ButtonDefaults.buttonColors(
+//                        containerColor = AppColors.PrimaryRed,
+//                        contentColor = Color.White
+//                    )
+//                ) {
+//                    Text(
+//                        text = "Entrar",
+//                        fontSize = 24.sp,
+//                        fontFamily = fontFamily,
+//                        fontWeight = FontWeight.Bold,
+//                        color = Color.White
+//                    )
+//                }
+//
+//                Text(
+//                    text = "Esqueceu a senha?",
+//                    fontSize = 14.sp,
+//                    fontFamily = fontFamily,
+//                    color = AppColors.DarkBlue,
+//                    modifier = Modifier.fillMaxWidth(),
+//                    textAlign = TextAlign.End
+//                )
+//
+//                Text(
+//                    text = "Ainda não tem conta? Cadastre-se",
+//                    fontSize = 18.sp,
+//                    fontFamily = fontFamily,
+//                    color = AppColors.DarkBlue,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .clickable {
+//                            navController.navigate(route = "cadastro")
+//                        },
+//                    textAlign = TextAlign.Center
+//                )
+//
+//            }
+//        }
+//    }
+//}
 
-                Text(
-                    text = "Esqueceu a senha?",
-                    fontSize = 14.sp,
-                    fontFamily = fontFamily,
-                    color = AppColors.DarkBlue,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.End
-                )
-
-                Text(
-                    text = "Ainda não tem conta? Cadastre-se",
-                    fontSize = 18.sp,
-                    fontFamily = fontFamily,
-                    color = AppColors.DarkBlue,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            navController.navigate(route = "cadastro")
-                        },
-                    textAlign = TextAlign.Center
-                )
-
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CadastroScreen(navController: NavController) {
-    var senhaStrength by remember { mutableStateOf("Senha fraca") }
-    var cadastroUserClient by remember { mutableStateOf(true) }
-    var cadastroUserPrestador by remember { mutableStateOf(false) }
-
-
-    Scaffold(
-        containerColor = Color.White,
-        topBar = {
-            AplicationTopBar(navController = navController)
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .background(Color.White)
-                .verticalScroll(rememberScrollState())
-                .padding(start = 25.dp, end = 25.dp, bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-
-            Text(
-                text = "Cadastro",
-                fontWeight = FontWeight.Bold,
-                fontFamily = fontFamily,
-                fontSize = 30.sp,
-                color = AppColors.DarkBlue,
-                modifier = Modifier
-                    .padding(start = 15.dp)
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .border(1.dp, AppColors.SecondaryRed, RoundedCornerShape(20.dp))
-            ) {
-                Button(
-                    onClick = {
-                        cadastroUserClient = true
-                        cadastroUserPrestador = false
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)),
-                    shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if(cadastroUserClient) AppColors.HighlightRed else Color.White,
-                        contentColor = if (cadastroUserClient) Color.White else AppColors.DarkBlue
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "Sou Cliente",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = fontFamily,
-                            color = if (cadastroUserClient) Color.White else AppColors.DarkBlue
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "Pessoas que necessitam ajuda",
-                            fontSize = 14.sp,
-                            fontFamily = fontFamily,
-                            fontWeight = FontWeight.Bold,
-                            color = if (cadastroUserClient) Color.White else AppColors.DarkBlue,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-                Button(
-                    onClick = {
-                        cadastroUserPrestador = true
-                        cadastroUserClient = false
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp)),
-                    shape = RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if(cadastroUserPrestador) AppColors.HighlightRed else Color.White,
-                        contentColor = if (cadastroUserPrestador) Color.White else AppColors.DarkBlue
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "Sou Prestador",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = fontFamily,
-                            color = if (cadastroUserPrestador) Color.White else AppColors.DarkBlue,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "Prestadores de serviço",
-                            fontSize = 14.sp,
-                            fontFamily = fontFamily,
-                            fontWeight = FontWeight.Bold,
-                            color = if (cadastroUserPrestador) Color.White else AppColors.DarkBlue,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-
-            if (cadastroUserClient && !cadastroUserPrestador){
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-
-                    TituloCampo("Nome Completo")
-                    CampoDigitar(campoNome = "Nome Completo", placeholder = "Digite seu nome completo")
-
-                    TituloCampo("Email")
-                    CampoDigitar(campoNome = "Email", placeholder = "exemplo@gmail.com")
-
-                    TituloCampo("Criação de Senha")
-                    CampoDigitar(campoNome = "Criação da senha", placeholder = "Senha", painter = painterResource(R.drawable.baseline_lock_24), painterTransform = painterResource(R.drawable.baseline_remove_red_eye_24))
-
-                    Text(
-                        //Validar o estilo da senha
-                        text = senhaStrength,
-                        fontFamily = fontFamily,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.ErrorRed,
-                        modifier = Modifier
-                            .padding(start = 15.dp)
-                    )
-
-                    CampoDigitar(campoNome = "Confirmação da Senha")
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Button(
-                        onClick = {TODO()},
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(60.dp)
-                            .clip(RoundedCornerShape(15.dp)),
-                        shape = RoundedCornerShape(15.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = AppColors.PrimaryRed,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text(
-                            text = "Entrar",
-                            fontSize = 24.sp,
-                            fontFamily = fontFamily,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                }
-
-            }else{
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text(
-                        text = "Torne-se um parceiro da DriveZ!",
-                        fontFamily = fontFamily,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.DarkBlue,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-
-                        )
-
-                    Text(
-                        text = "Alcance mais clientes e gerencie suas viagens.",
-                        fontFamily = fontFamily,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.DarkBlue,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-
-                    TituloCampo("Nome Completo")
-                    CampoDigitar(campoNome = "Nome Completo", placeholder = "Digite seu nome completo")
-
-                    TituloCampo("Email")
-                    CampoDigitar(campoNome = "Email", placeholder = "exemplo@gmail.com")
-
-                    TituloCampo("Criação de Senha")
-                    CampoDigitar(campoNome = "Criação da senha", placeholder = "Senha", painter = painterResource(R.drawable.baseline_lock_24), painterTransform = painterResource(R.drawable.baseline_remove_red_eye_24))
-
-                    Text(
-                        //Validar o estilo da senha
-                        text = senhaStrength,
-                        fontFamily = fontFamily,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.ErrorRed,
-                        modifier = Modifier
-                            .padding(start = 15.dp)
-                    )
-
-                    CampoDigitar(campoNome = "Confirme a Senha")
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Button(
-                        onClick = {TODO()},
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(60.dp)
-                            .clip(RoundedCornerShape(15.dp)),
-                        shape = RoundedCornerShape(15.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = AppColors.PrimaryRed,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text(
-                            text = "Entrar",
-                            fontSize = 24.sp,
-                            fontFamily = fontFamily,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                }
-
-            }
-
-        }
-    }
-}
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun CadastroScreen(navController: NavController) {
+//    var senhaStrength by remember { mutableStateOf("Senha fraca") }
+//    var cadastroUserClient by remember { mutableStateOf(true) }
+//    var cadastroUserPrestador by remember { mutableStateOf(false) }
+//
+//
+//    Scaffold(
+//        containerColor = Color.White,
+//        topBar = {
+//            AplicationTopBar(navController = navController)
+//        }
+//    ) { paddingValues ->
+//        Column(
+//            modifier = Modifier
+//                .padding(paddingValues)
+//                .fillMaxSize()
+//                .background(Color.White)
+//                .verticalScroll(rememberScrollState())
+//                .padding(start = 25.dp, end = 25.dp, bottom = 80.dp),
+//            verticalArrangement = Arrangement.spacedBy(10.dp)
+//        ) {
+//
+//            Text(
+//                text = "Cadastro",
+//                fontWeight = FontWeight.Bold,
+//                fontFamily = fontFamily,
+//                fontSize = 30.sp,
+//                color = AppColors.DarkBlue,
+//                modifier = Modifier
+//                    .padding(start = 15.dp)
+//            )
+//
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(100.dp)
+//                    .border(1.dp, AppColors.SecondaryRed, RoundedCornerShape(20.dp))
+//            ) {
+//                Button(
+//                    onClick = {
+//                        cadastroUserClient = true
+//                        cadastroUserPrestador = false
+//                    },
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)),
+//                    shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp),
+//                    colors = ButtonDefaults.buttonColors(
+//                        containerColor = if(cadastroUserClient) AppColors.HighlightRed else Color.White,
+//                        contentColor = if (cadastroUserClient) Color.White else AppColors.DarkBlue
+//                    )
+//                ) {
+//                    Column(
+//                        modifier = Modifier
+//                            .fillMaxSize(),
+//                        horizontalAlignment = Alignment.CenterHorizontally,
+//                        verticalArrangement = Arrangement.Center
+//                    ) {
+//                        Text(
+//                            text = "Sou Cliente",
+//                            fontSize = 18.sp,
+//                            fontWeight = FontWeight.Bold,
+//                            fontFamily = fontFamily,
+//                            color = if (cadastroUserClient) Color.White else AppColors.DarkBlue
+//                        )
+//                        Spacer(modifier = Modifier.height(10.dp))
+//                        Text(
+//                            text = "Pessoas que necessitam ajuda",
+//                            fontSize = 14.sp,
+//                            fontFamily = fontFamily,
+//                            fontWeight = FontWeight.Bold,
+//                            color = if (cadastroUserClient) Color.White else AppColors.DarkBlue,
+//                            textAlign = TextAlign.Center
+//                        )
+//                    }
+//                }
+//                Button(
+//                    onClick = {
+//                        cadastroUserPrestador = true
+//                        cadastroUserClient = false
+//                    },
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .clip(RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp)),
+//                    shape = RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
+//                    colors = ButtonDefaults.buttonColors(
+//                        containerColor = if(cadastroUserPrestador) AppColors.HighlightRed else Color.White,
+//                        contentColor = if (cadastroUserPrestador) Color.White else AppColors.DarkBlue
+//                    )
+//                ) {
+//                    Column(
+//                        modifier = Modifier
+//                            .fillMaxSize(),
+//                        horizontalAlignment = Alignment.CenterHorizontally,
+//                        verticalArrangement = Arrangement.Center
+//                    ) {
+//                        Text(
+//                            text = "Sou Prestador",
+//                            fontSize = 18.sp,
+//                            fontWeight = FontWeight.Bold,
+//                            fontFamily = fontFamily,
+//                            color = if (cadastroUserPrestador) Color.White else AppColors.DarkBlue,
+//                            textAlign = TextAlign.Center
+//                        )
+//                        Spacer(modifier = Modifier.height(10.dp))
+//                        Text(
+//                            text = "Prestadores de serviço",
+//                            fontSize = 14.sp,
+//                            fontFamily = fontFamily,
+//                            fontWeight = FontWeight.Bold,
+//                            color = if (cadastroUserPrestador) Color.White else AppColors.DarkBlue,
+//                            textAlign = TextAlign.Center
+//                        )
+//                    }
+//                }
+//            }
+//            Spacer(modifier = Modifier.height(10.dp))
+//
+//            if (cadastroUserClient && !cadastroUserPrestador){
+//
+//                Column(
+//                    verticalArrangement = Arrangement.spacedBy(10.dp)
+//                ) {
+//
+//                    TituloCampo("Nome Completo")
+//                    CampoDigitar(campoNome = "Nome Completo", placeholder = "Digite seu nome completo")
+//
+//                    TituloCampo("Email")
+//                    CampoDigitar(campoNome = "Email", placeholder = "exemplo@gmail.com")
+//
+//                    TituloCampo("Criação de Senha")
+//                    CampoDigitar(campoNome = "Criação da senha", placeholder = "Senha", painter = painterResource(R.drawable.baseline_lock_24), painterTransform = painterResource(R.drawable.baseline_remove_red_eye_24))
+//
+//                    Text(
+//                        //Validar o estilo da senha
+//                        text = senhaStrength,
+//                        fontFamily = fontFamily,
+//                        fontSize = 14.sp,
+//                        fontWeight = FontWeight.Bold,
+//                        color = AppColors.ErrorRed,
+//                        modifier = Modifier
+//                            .padding(start = 15.dp)
+//                    )
+//
+//                    CampoDigitar(campoNome = "Confirmação da Senha")
+//
+//                    Spacer(modifier = Modifier.height(10.dp))
+//
+//                    Button(
+//                        onClick = {TODO()},
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .height(60.dp)
+//                            .clip(RoundedCornerShape(15.dp)),
+//                        shape = RoundedCornerShape(15.dp),
+//                        colors = ButtonDefaults.buttonColors(
+//                            containerColor = AppColors.PrimaryRed,
+//                            contentColor = Color.White
+//                        )
+//                    ) {
+//                        Text(
+//                            text = "Entrar",
+//                            fontSize = 24.sp,
+//                            fontFamily = fontFamily,
+//                            fontWeight = FontWeight.Bold,
+//                            color = Color.White
+//                        )
+//                    }
+//                }
+//
+//            }else{
+//
+//                Column(
+//                    verticalArrangement = Arrangement.spacedBy(10.dp)
+//                ) {
+//                    Text(
+//                        text = "Torne-se um parceiro da DriveZ!",
+//                        fontFamily = fontFamily,
+//                        fontSize = 20.sp,
+//                        fontWeight = FontWeight.Bold,
+//                        color = AppColors.DarkBlue,
+//                        modifier = Modifier.fillMaxWidth(),
+//                        textAlign = TextAlign.Center,
+//
+//                        )
+//
+//                    Text(
+//                        text = "Alcance mais clientes e gerencie suas viagens.",
+//                        fontFamily = fontFamily,
+//                        fontSize = 16.sp,
+//                        fontWeight = FontWeight.Bold,
+//                        color = AppColors.DarkBlue,
+//                        modifier = Modifier.fillMaxWidth(),
+//                        textAlign = TextAlign.Center
+//                    )
+//
+//                    TituloCampo("Nome Completo")
+//                    CampoDigitar(campoNome = "Nome Completo", placeholder = "Digite seu nome completo")
+//
+//                    TituloCampo("Email")
+//                    CampoDigitar(campoNome = "Email", placeholder = "exemplo@gmail.com")
+//
+//                    TituloCampo("Criação de Senha")
+//                    CampoDigitar(campoNome = "Criação da senha", placeholder = "Senha", painter = painterResource(R.drawable.baseline_lock_24), painterTransform = painterResource(R.drawable.baseline_remove_red_eye_24))
+//
+//                    Text(
+//                        //Validar o estilo da senha
+//                        text = senhaStrength,
+//                        fontFamily = fontFamily,
+//                        fontSize = 14.sp,
+//                        fontWeight = FontWeight.Bold,
+//                        color = AppColors.ErrorRed,
+//                        modifier = Modifier
+//                            .padding(start = 15.dp)
+//                    )
+//
+//                    CampoDigitar(campoNome = "Confirme a Senha")
+//
+//                    Spacer(modifier = Modifier.height(10.dp))
+//
+//                    Button(
+//                        onClick = {TODO()},
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .height(60.dp)
+//                            .clip(RoundedCornerShape(15.dp)),
+//                        shape = RoundedCornerShape(15.dp),
+//                        colors = ButtonDefaults.buttonColors(
+//                            containerColor = AppColors.PrimaryRed,
+//                            contentColor = Color.White
+//                        )
+//                    ) {
+//                        Text(
+//                            text = "Entrar",
+//                            fontSize = 24.sp,
+//                            fontFamily = fontFamily,
+//                            fontWeight = FontWeight.Bold,
+//                            color = Color.White
+//                        )
+//                    }
+//                }
+//
+//            }
+//
+//        }
+//    }
+//}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
