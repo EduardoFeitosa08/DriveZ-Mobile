@@ -75,4 +75,5 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation("com.google.accompanist:accompanist-permissions:0.34.0")
 }

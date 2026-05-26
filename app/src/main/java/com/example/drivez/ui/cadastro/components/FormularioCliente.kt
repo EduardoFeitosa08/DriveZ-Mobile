@@ -74,7 +74,8 @@ fun FormularioCliente(
             onValueChange = {
                 senha = it
                 senhaForca = SenhaValidator.avaliarForca(it)
-            }
+            },
+            isSenha = true
         )
 
         if (senhaForca != SenhaForca.VAZIA) {
@@ -93,7 +94,8 @@ fun FormularioCliente(
             campoNome = "Confirmação da Senha",
             placeholder = "Repita sua senha",
             value = confirmaSenha,
-            onValueChange = { confirmaSenha = it }
+            onValueChange = { confirmaSenha = it },
+            isSenha = true
         )
 
         Spacer(modifier = Modifier.height(10.dp))

@@ -136,6 +136,7 @@ import com.example.drivez.data.model.Veiculo
 import com.example.drivez.core.network.theme.AppColors
 import com.example.drivez.ui.cadastro.CadastroScreen
 import com.example.drivez.ui.cadastro.CadastroViewModel
+import com.example.drivez.ui.home_cliente.HomeClienteScreen
 import com.example.drivez.ui.login.LoginScreen
 import com.example.drivez.util.FormatarData
 import kotlinx.coroutines.launch
@@ -153,7 +154,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(
                         navController = navController,
-                        startDestination = "login"
+                        startDestination = "home/cliente"
                     ){
                         composable("login") {
                             LoginScreen(navController = navController)
@@ -666,155 +667,155 @@ val fontFamily = FontFamily(
 //    }
 //}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HomeClienteScreen(navController: NavController) {
-
-    val listaPrestadores = listOf(
-        Prestador(id = 1, nome = "RIMBEIRO", avaliacao = 2.0, totalAvaliacoes = 45, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico"))),
-        Prestador(id = 2, nome = "RIMBEIRO", avaliacao = 1.0, totalAvaliacoes = 35, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico"))),
-        Prestador(id = 3, nome = "RIMBEIRO", avaliacao = 0.0, totalAvaliacoes = 3, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico"))),
-        Prestador(id = 4, nome = "RIMBEIRO", avaliacao = 3.5, totalAvaliacoes = 10, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico")))
-    )
-
-    val progresso = remember { Animatable(1f) }
-    var resetKey by remember { mutableStateOf(0) }
-
-    LaunchedEffect(resetKey) {
-        progresso.snapTo(0f) // Garante que comece do zero imediatamente ao resetar
-        progresso.animateTo(
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 3 * 60 * 1000, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart
-            )
-        )
-    }
-
-    Scaffold(
-        containerColor = Color.White,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.logo_home),
-                            contentDescription = "DriveZ",
-                            modifier = Modifier
-                                .width(220.dp)
-                                .height(50.dp)
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            //Depois adicionar a logica de trocar de icone e desligar as notificações do app
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.baseline_notifications_active_24),
-                            contentDescription = "Notificação Ativa",
-                            tint = AppColors.DarkBlue,
-                            modifier = Modifier
-                                .size(50.dp)
-                                .padding(end = 15.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
-            )
-        },
-        bottomBar = { BottomClienteBar(navController = navController) }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .padding(horizontal = 10.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column() {
-                        Text(
-                            text = "Mostrando prestadores próximos a você",
-                            color = Color.Black,
-                            fontFamily = fontFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 15.sp
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                            progress = {progresso.value},
-                            modifier = Modifier
-                                .fillMaxWidth(0.8f)
-                                .height(4.dp),
-                            color = Color.Red
-                        )
-                    }
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_refresh_24),
-                        contentDescription = "Atualizar",
-                        tint = AppColors.DarkBlue,
-                        modifier = Modifier
-                            .size(35.dp)
-                            .clickable { resetKey++ }
-                    )
-                }
-                Button(
-                    onClick = {},
-                    modifier = Modifier
-                        .padding(top = 8.dp),
-                    shape = RoundedCornerShape(15.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.SecondaryRed,
-                        contentColor = Color.White
-                    )
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.baseline_filter_alt_24),
-                            contentDescription = "Filtrar",
-                            tint = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "Filtrar"
-                        )
-                    }
-                }
-            }
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .padding(bottom = 40.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                items(listaPrestadores){
-                    CardPrestador(prestador = it, navController = navController)
-                }
-            }
-        }
-    }
-}
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun HomeClienteScreen(navController: NavController) {
+//
+//    val listaPrestadores = listOf(
+//        Prestador(id = 1, nome = "RIMBEIRO", avaliacao = 2.0, totalAvaliacoes = 45, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico"))),
+//        Prestador(id = 2, nome = "RIMBEIRO", avaliacao = 1.0, totalAvaliacoes = 35, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico"))),
+//        Prestador(id = 3, nome = "RIMBEIRO", avaliacao = 0.0, totalAvaliacoes = 3, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico"))),
+//        Prestador(id = 4, nome = "RIMBEIRO", avaliacao = 3.5, totalAvaliacoes = 10, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico")))
+//    )
+//
+//    val progresso = remember { Animatable(1f) }
+//    var resetKey by remember { mutableStateOf(0) }
+//
+//    LaunchedEffect(resetKey) {
+//        progresso.snapTo(0f) // Garante que comece do zero imediatamente ao resetar
+//        progresso.animateTo(
+//            targetValue = 1f,
+//            animationSpec = infiniteRepeatable(
+//                animation = tween(durationMillis = 3 * 60 * 1000, easing = LinearEasing),
+//                repeatMode = RepeatMode.Restart
+//            )
+//        )
+//    }
+//
+//    Scaffold(
+//        containerColor = Color.White,
+//        topBar = {
+//            TopAppBar(
+//                title = {
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth(),
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.Center
+//                    ) {
+//                        Image(
+//                            painter = painterResource(R.drawable.logo_home),
+//                            contentDescription = "DriveZ",
+//                            modifier = Modifier
+//                                .width(220.dp)
+//                                .height(50.dp)
+//                        )
+//                    }
+//                },
+//                actions = {
+//                    IconButton(
+//                        onClick = {
+//                            //Depois adicionar a logica de trocar de icone e desligar as notificações do app
+//                        }
+//                    ) {
+//                        Icon(
+//                            painter = painterResource(R.drawable.baseline_notifications_active_24),
+//                            contentDescription = "Notificação Ativa",
+//                            tint = AppColors.DarkBlue,
+//                            modifier = Modifier
+//                                .size(50.dp)
+//                                .padding(end = 15.dp)
+//                        )
+//                    }
+//                },
+//                colors = TopAppBarDefaults.topAppBarColors(
+//                    containerColor = Color.White
+//                )
+//            )
+//        },
+//        bottomBar = { BottomClienteBar(navController = navController) }
+//    ) { paddingValues ->
+//        Column(
+//            modifier = Modifier
+//                .padding(paddingValues)
+//                .fillMaxSize()
+//                .padding(horizontal = 10.dp)
+//        ) {
+//            Column(
+//                modifier = Modifier.padding(16.dp)
+//            ) {
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.SpaceBetween,
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    Column() {
+//                        Text(
+//                            text = "Mostrando prestadores próximos a você",
+//                            color = Color.Black,
+//                            fontFamily = fontFamily,
+//                            fontWeight = FontWeight.SemiBold,
+//                            fontSize = 15.sp
+//                        )
+//                        Spacer(modifier = Modifier.height(8.dp))
+//                        LinearProgressIndicator(
+//                            progress = {progresso.value},
+//                            modifier = Modifier
+//                                .fillMaxWidth(0.8f)
+//                                .height(4.dp),
+//                            color = Color.Red
+//                        )
+//                    }
+//                    Icon(
+//                        painter = painterResource(R.drawable.baseline_refresh_24),
+//                        contentDescription = "Atualizar",
+//                        tint = AppColors.DarkBlue,
+//                        modifier = Modifier
+//                            .size(35.dp)
+//                            .clickable { resetKey++ }
+//                    )
+//                }
+//                Button(
+//                    onClick = {},
+//                    modifier = Modifier
+//                        .padding(top = 8.dp),
+//                    shape = RoundedCornerShape(15.dp),
+//                    colors = ButtonDefaults.buttonColors(
+//                        containerColor = AppColors.SecondaryRed,
+//                        contentColor = Color.White
+//                    )
+//                ) {
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.SpaceEvenly
+//                    ) {
+//                        Icon(
+//                            painter = painterResource(R.drawable.baseline_filter_alt_24),
+//                            contentDescription = "Filtrar",
+//                            tint = Color.White
+//                        )
+//                        Spacer(modifier = Modifier.width(10.dp))
+//                        Text(
+//                            text = "Filtrar"
+//                        )
+//                    }
+//                }
+//            }
+//            LazyColumn(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .fillMaxHeight()
+//                    .padding(bottom = 40.dp),
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.spacedBy(20.dp)
+//            ) {
+//                items(listaPrestadores){
+//                    CardPrestador(prestador = it, navController = navController)
+//                }
+//            }
+//        }
+//    }
+//}
 
 @Composable
 fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navController: NavController) {
@@ -875,16 +876,6 @@ fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navContro
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
                     )
-                    VerticalDivider(
-                        modifier = Modifier.fillMaxHeight(),
-                        color = Color.Gray,
-                        thickness = 1.dp
-                    )
-                    Text(
-                        text = "${prestador.distancia} Km",
-                        fontFamily = fontFamily,
-                        color = Color.Gray
-                    )
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -923,7 +914,7 @@ fun ServicoScreen(navController: NavController, prestadorId: String) {
     val prestadorTeste = Prestador(id = 1, nome = "RIMBEIRO", avaliacao = 2.0,
         descricao = "Especializada em serviços de guincho e assistência veicular, a Rimberio oferece suporte rápido e seguro para o seu veículo. " +
                 "Com foco na eficiência e no cuidado com o patrimônio do cliente, estamos prontos para atender emergências com profissionalismo e pontualidade."
-        , totalAvaliacoes = 45, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico")))
+        , totalAvaliacoes = 45, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico")))
 
     Scaffold(
         topBar = {
@@ -1512,7 +1503,7 @@ fun ServiceStatusScreen(navController: NavController, userId: String, isSOS: Boo
 
     var servicoState by remember { mutableStateOf(false) }
 
-    val prestadorTeste = Prestador(id = 1, nome = "RIMBEIRO", avaliacao = 2.0, perfilImgUrl = "https://i.pravatar.cc/150?u=1", totalAvaliacoes = 45, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico")))
+    val prestadorTeste = Prestador(id = 1, nome = "RIMBEIRO", avaliacao = 2.0, perfilImgUrl = "https://i.pravatar.cc/150?u=1", totalAvaliacoes = 45, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico")))
 
     Box(modifier = Modifier.fillMaxSize()) {
         Box(

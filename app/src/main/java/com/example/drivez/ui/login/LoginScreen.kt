@@ -190,7 +190,8 @@ fun LoginScreen(
             value = senha,
             onValueChange = { senha = it },
             painter = painterResource(R.drawable.baseline_lock_24),
-            painterTransform = painterResource(R.drawable.baseline_remove_red_eye_24)
+            painterTransform = painterResource(R.drawable.baseline_remove_red_eye_24),
+            isSenha = true
         )
 
         Spacer(modifier = Modifier.height(20.dp))

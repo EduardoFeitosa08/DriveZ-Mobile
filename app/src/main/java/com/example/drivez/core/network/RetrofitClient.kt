@@ -4,10 +4,11 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.create
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private const val BASE_URL = "https://localhost:8080/v1/drivez/"
+    private const val BASE_URL = "http://localhost:8080/v1/drivez/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -31,5 +32,8 @@ object RetrofitClient {
 
     val authApiService: AuthApiService by lazy {
         retrofit.create(AuthApiService::class.java)
+    }
+    val homeApiService: HomeApiService by lazy{
+        retrofit.create(HomeApiService::class.java)
     }
 }

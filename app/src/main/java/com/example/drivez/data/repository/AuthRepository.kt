@@ -12,7 +12,6 @@ import retrofit2.Retrofit
 class AuthRepository(private val apiService: AuthApiService = RetrofitClient.authApiService) {
 
     suspend fun realizarCadastroInicial(nome: String, email: String, tipo: String): LoginResponse {
-        // Certifique-se de que o seu CadastroInicialRequest na API aceite os campos corretos
         val request = CadastroInicialRequest(nome, email, tipo)
         return apiService.cadastrarInicial(request)
     }

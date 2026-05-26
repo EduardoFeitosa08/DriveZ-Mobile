@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -19,6 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.drivez.fontFamily
@@ -102,8 +106,9 @@ fun CampoDigitar(campoNome: String, placeholder: String = "", valorPadrao: Strin
 
 @Composable
 fun CadastroCampoDigitar(campoNome: String, value: String, onValueChange: (String) -> Unit,
-    placeholder: String = "", painter: Painter? = null, painterTransform: Painter? = null,
-    alteravel: Boolean = true, iconFim: Boolean = true, modifier: Modifier = Modifier
+                         placeholder: String = "", painter: Painter? = null, painterTransform: Painter? = null,
+                         alteravel: Boolean = true, iconFim: Boolean = true, modifier: Modifier = Modifier,
+                         isSenha: Boolean = false
 ) {
     var iconState by remember { mutableStateOf(false) }
 
@@ -160,6 +165,17 @@ fun CadastroCampoDigitar(campoNome: String, value: String, onValueChange: (Strin
             unfocusedTextColor = AppColors.DarkBlue,
             unfocusedContainerColor = if (value.isNotEmpty()) Color(0xFFE6EEF8) else Color.White,
             focusedContainerColor = Color.White
-        )
+        ),
+        visualTransformation = if (isSenha && !iconState) {
+            PasswordVisualTransformation()
+        } else {
+            VisualTransformation.None
+        },
+
+        keyboardOptions = if (isSenha) {
+            KeyboardOptions(keyboardType = KeyboardType.Password)
+        } else {
+            KeyboardOptions.Default
+        },
     )
 }
