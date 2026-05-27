@@ -138,6 +138,7 @@ import com.example.drivez.ui.cadastro.CadastroScreen
 import com.example.drivez.ui.cadastro.CadastroViewModel
 import com.example.drivez.ui.home_cliente.HomeClienteScreen
 import com.example.drivez.ui.login.LoginScreen
+import com.example.drivez.ui.registro_pedidos_cliente.ClienteRegistroDePedidosScreen
 import com.example.drivez.util.FormatarData
 import kotlinx.coroutines.launch
 
@@ -186,7 +187,11 @@ class MainActivity : ComponentActivity() {
                             val prestadorId = it.arguments?.getString("prestadorId")
                             ServicoScreen(navController = navController, prestadorId = prestadorId!!)
                         }
-                        composable("home/cliente/historico"){
+                        composable(
+                            "home/cliente/historico/{clienteId}",
+                            arguments = listOf(navArgument("clienteId") {type = NavType.StringType})
+                        ){
+                            val clienteId = it.arguments?.getString("clienteId")
                             ClienteRegistroDePedidosScreen(navController = navController)
                         }
                         composable("home/cliente/contatos") {
@@ -327,582 +332,92 @@ val fontFamily = FontFamily(
     )
 )
 
-
 //@Composable
-//fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
+//fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navController: NavController) {
 //
-//    Scaffold(
-//        containerColor = Color.White
-//    ) { paddingValues ->
-//        Column(
-//            modifier = modifier
-//                .padding(paddingValues)
-//                .fillMaxSize()
-//                .background(AppColors.BackgroundGray)
-//                .verticalScroll(rememberScrollState())
-//                .padding(bottom = 30.dp),
-//            horizontalAlignment = Alignment.CenterHorizontally,
+//
+//    Card(
+//        modifier = modifier
+//            .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(15.dp))
+//            .clickable {
+//                navController.navigate("home/cliente/servico/${prestador.id}")
+//            },
+//        elevation = CardDefaults.cardElevation(
+//            defaultElevation = 6.dp,
+//        ),
+//        colors = CardDefaults.cardColors(
+//            containerColor = AppColors.CardBackground
+//        ),
+//        shape = RoundedCornerShape(15.dp)
+//    ) {
+//        Row(
+//            modifier = Modifier.padding(vertical = 15.dp, horizontal = 20.dp),
+//            verticalAlignment = Alignment.CenterVertically,
 //        ) {
-//            Image(
-//                painter = painterResource(R.drawable.logo_login),
-//                contentDescription = "DriveZ Logo",
+//            //Depois substituir por um asyc image
+//            Icon(
+//                painter = painterResource(R.drawable.baseline_person_24),
+//                contentDescription = "Prestador",
+//                tint = AppColors.DarkBlue,
 //                modifier = Modifier
-//                    .size(450.dp)
+//                    .size(70.dp)
+//                    .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100))
 //            )
-//            Spacer(modifier = Modifier.height(15.dp))
+//            Spacer(modifier = Modifier.width(20.dp))
 //            Column(
-//                modifier = Modifier
-//                    .padding(horizontal = 45.dp),
-//                verticalArrangement = Arrangement.spacedBy(20.dp),
-//                horizontalAlignment = Alignment.CenterHorizontally
+//                modifier = Modifier,
+//                verticalArrangement = Arrangement.spacedBy(10.dp)
 //            ) {
-//
-//                //TextField do Email
-//                CampoDigitar(campoNome = "E-mail")
-//
-//                //TextField da Senha
-//                CampoDigitar(campoNome = "Senha")
-//
-//                Button(
-//                    onClick = {
-//                        //Depois alterar para somente logar depois de validar os dados
-//                        navController.navigate(route = "home/prestador")
-//
-//                        //Depois fazer a validacao para saber se o usuario é um cliente ou prestador
-////                        navController.navigate(route = "home/prestador")
-//                    },
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(60.dp)
-//                        .clip(RoundedCornerShape(15.dp)),
-//                    shape = RoundedCornerShape(15.dp),
-//                    colors = ButtonDefaults.buttonColors(
-//                        containerColor = AppColors.PrimaryRed,
-//                        contentColor = Color.White
-//                    )
-//                ) {
-//                    Text(
-//                        text = "Entrar",
-//                        fontSize = 24.sp,
-//                        fontFamily = fontFamily,
-//                        fontWeight = FontWeight.Bold,
-//                        color = Color.White
-//                    )
-//                }
-//
 //                Text(
-//                    text = "Esqueceu a senha?",
-//                    fontSize = 14.sp,
+//                    text = prestador.nome,
 //                    fontFamily = fontFamily,
-//                    color = AppColors.DarkBlue,
-//                    modifier = Modifier.fillMaxWidth(),
-//                    textAlign = TextAlign.End
-//                )
-//
-//                Text(
-//                    text = "Ainda não tem conta? Cadastre-se",
+//                    fontWeight = FontWeight.Bold,
 //                    fontSize = 18.sp,
-//                    fontFamily = fontFamily,
-//                    color = AppColors.DarkBlue,
+//                    color = AppColors.SecondaryRed
+//                )
+//                Row(
 //                    modifier = Modifier
 //                        .fillMaxWidth()
-//                        .clickable {
-//                            navController.navigate(route = "cadastro")
-//                        },
-//                    textAlign = TextAlign.Center
-//                )
-//
-//            }
-//        }
-//    }
-//}
-
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun CadastroScreen(navController: NavController) {
-//    var senhaStrength by remember { mutableStateOf("Senha fraca") }
-//    var cadastroUserClient by remember { mutableStateOf(true) }
-//    var cadastroUserPrestador by remember { mutableStateOf(false) }
-//
-//
-//    Scaffold(
-//        containerColor = Color.White,
-//        topBar = {
-//            AplicationTopBar(navController = navController)
-//        }
-//    ) { paddingValues ->
-//        Column(
-//            modifier = Modifier
-//                .padding(paddingValues)
-//                .fillMaxSize()
-//                .background(Color.White)
-//                .verticalScroll(rememberScrollState())
-//                .padding(start = 25.dp, end = 25.dp, bottom = 80.dp),
-//            verticalArrangement = Arrangement.spacedBy(10.dp)
-//        ) {
-//
-//            Text(
-//                text = "Cadastro",
-//                fontWeight = FontWeight.Bold,
-//                fontFamily = fontFamily,
-//                fontSize = 30.sp,
-//                color = AppColors.DarkBlue,
-//                modifier = Modifier
-//                    .padding(start = 15.dp)
-//            )
-//
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(100.dp)
-//                    .border(1.dp, AppColors.SecondaryRed, RoundedCornerShape(20.dp))
-//            ) {
-//                Button(
-//                    onClick = {
-//                        cadastroUserClient = true
-//                        cadastroUserPrestador = false
-//                    },
-//                    modifier = Modifier
-//                        .weight(1f)
-//                        .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)),
-//                    shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp),
-//                    colors = ButtonDefaults.buttonColors(
-//                        containerColor = if(cadastroUserClient) AppColors.HighlightRed else Color.White,
-//                        contentColor = if (cadastroUserClient) Color.White else AppColors.DarkBlue
-//                    )
-//                ) {
-//                    Column(
-//                        modifier = Modifier
-//                            .fillMaxSize(),
-//                        horizontalAlignment = Alignment.CenterHorizontally,
-//                        verticalArrangement = Arrangement.Center
-//                    ) {
-//                        Text(
-//                            text = "Sou Cliente",
-//                            fontSize = 18.sp,
-//                            fontWeight = FontWeight.Bold,
-//                            fontFamily = fontFamily,
-//                            color = if (cadastroUserClient) Color.White else AppColors.DarkBlue
-//                        )
-//                        Spacer(modifier = Modifier.height(10.dp))
-//                        Text(
-//                            text = "Pessoas que necessitam ajuda",
-//                            fontSize = 14.sp,
-//                            fontFamily = fontFamily,
-//                            fontWeight = FontWeight.Bold,
-//                            color = if (cadastroUserClient) Color.White else AppColors.DarkBlue,
-//                            textAlign = TextAlign.Center
-//                        )
-//                    }
-//                }
-//                Button(
-//                    onClick = {
-//                        cadastroUserPrestador = true
-//                        cadastroUserClient = false
-//                    },
-//                    modifier = Modifier
-//                        .weight(1f)
-//                        .clip(RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp)),
-//                    shape = RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
-//                    colors = ButtonDefaults.buttonColors(
-//                        containerColor = if(cadastroUserPrestador) AppColors.HighlightRed else Color.White,
-//                        contentColor = if (cadastroUserPrestador) Color.White else AppColors.DarkBlue
-//                    )
-//                ) {
-//                    Column(
-//                        modifier = Modifier
-//                            .fillMaxSize(),
-//                        horizontalAlignment = Alignment.CenterHorizontally,
-//                        verticalArrangement = Arrangement.Center
-//                    ) {
-//                        Text(
-//                            text = "Sou Prestador",
-//                            fontSize = 18.sp,
-//                            fontWeight = FontWeight.Bold,
-//                            fontFamily = fontFamily,
-//                            color = if (cadastroUserPrestador) Color.White else AppColors.DarkBlue,
-//                            textAlign = TextAlign.Center
-//                        )
-//                        Spacer(modifier = Modifier.height(10.dp))
-//                        Text(
-//                            text = "Prestadores de serviço",
-//                            fontSize = 14.sp,
-//                            fontFamily = fontFamily,
-//                            fontWeight = FontWeight.Bold,
-//                            color = if (cadastroUserPrestador) Color.White else AppColors.DarkBlue,
-//                            textAlign = TextAlign.Center
-//                        )
-//                    }
-//                }
-//            }
-//            Spacer(modifier = Modifier.height(10.dp))
-//
-//            if (cadastroUserClient && !cadastroUserPrestador){
-//
-//                Column(
-//                    verticalArrangement = Arrangement.spacedBy(10.dp)
-//                ) {
-//
-//                    TituloCampo("Nome Completo")
-//                    CampoDigitar(campoNome = "Nome Completo", placeholder = "Digite seu nome completo")
-//
-//                    TituloCampo("Email")
-//                    CampoDigitar(campoNome = "Email", placeholder = "exemplo@gmail.com")
-//
-//                    TituloCampo("Criação de Senha")
-//                    CampoDigitar(campoNome = "Criação da senha", placeholder = "Senha", painter = painterResource(R.drawable.baseline_lock_24), painterTransform = painterResource(R.drawable.baseline_remove_red_eye_24))
-//
-//                    Text(
-//                        //Validar o estilo da senha
-//                        text = senhaStrength,
-//                        fontFamily = fontFamily,
-//                        fontSize = 14.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = AppColors.ErrorRed,
-//                        modifier = Modifier
-//                            .padding(start = 15.dp)
-//                    )
-//
-//                    CampoDigitar(campoNome = "Confirmação da Senha")
-//
-//                    Spacer(modifier = Modifier.height(10.dp))
-//
-//                    Button(
-//                        onClick = {TODO()},
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(60.dp)
-//                            .clip(RoundedCornerShape(15.dp)),
-//                        shape = RoundedCornerShape(15.dp),
-//                        colors = ButtonDefaults.buttonColors(
-//                            containerColor = AppColors.PrimaryRed,
-//                            contentColor = Color.White
-//                        )
-//                    ) {
-//                        Text(
-//                            text = "Entrar",
-//                            fontSize = 24.sp,
-//                            fontFamily = fontFamily,
-//                            fontWeight = FontWeight.Bold,
-//                            color = Color.White
-//                        )
-//                    }
-//                }
-//
-//            }else{
-//
-//                Column(
-//                    verticalArrangement = Arrangement.spacedBy(10.dp)
-//                ) {
-//                    Text(
-//                        text = "Torne-se um parceiro da DriveZ!",
-//                        fontFamily = fontFamily,
-//                        fontSize = 20.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = AppColors.DarkBlue,
-//                        modifier = Modifier.fillMaxWidth(),
-//                        textAlign = TextAlign.Center,
-//
-//                        )
-//
-//                    Text(
-//                        text = "Alcance mais clientes e gerencie suas viagens.",
-//                        fontFamily = fontFamily,
-//                        fontSize = 16.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = AppColors.DarkBlue,
-//                        modifier = Modifier.fillMaxWidth(),
-//                        textAlign = TextAlign.Center
-//                    )
-//
-//                    TituloCampo("Nome Completo")
-//                    CampoDigitar(campoNome = "Nome Completo", placeholder = "Digite seu nome completo")
-//
-//                    TituloCampo("Email")
-//                    CampoDigitar(campoNome = "Email", placeholder = "exemplo@gmail.com")
-//
-//                    TituloCampo("Criação de Senha")
-//                    CampoDigitar(campoNome = "Criação da senha", placeholder = "Senha", painter = painterResource(R.drawable.baseline_lock_24), painterTransform = painterResource(R.drawable.baseline_remove_red_eye_24))
-//
-//                    Text(
-//                        //Validar o estilo da senha
-//                        text = senhaStrength,
-//                        fontFamily = fontFamily,
-//                        fontSize = 14.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = AppColors.ErrorRed,
-//                        modifier = Modifier
-//                            .padding(start = 15.dp)
-//                    )
-//
-//                    CampoDigitar(campoNome = "Confirme a Senha")
-//
-//                    Spacer(modifier = Modifier.height(10.dp))
-//
-//                    Button(
-//                        onClick = {TODO()},
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(60.dp)
-//                            .clip(RoundedCornerShape(15.dp)),
-//                        shape = RoundedCornerShape(15.dp),
-//                        colors = ButtonDefaults.buttonColors(
-//                            containerColor = AppColors.PrimaryRed,
-//                            contentColor = Color.White
-//                        )
-//                    ) {
-//                        Text(
-//                            text = "Entrar",
-//                            fontSize = 24.sp,
-//                            fontFamily = fontFamily,
-//                            fontWeight = FontWeight.Bold,
-//                            color = Color.White
-//                        )
-//                    }
-//                }
-//
-//            }
-//
-//        }
-//    }
-//}
-
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun HomeClienteScreen(navController: NavController) {
-//
-//    val listaPrestadores = listOf(
-//        Prestador(id = 1, nome = "RIMBEIRO", avaliacao = 2.0, totalAvaliacoes = 45, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico"))),
-//        Prestador(id = 2, nome = "RIMBEIRO", avaliacao = 1.0, totalAvaliacoes = 35, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico"))),
-//        Prestador(id = 3, nome = "RIMBEIRO", avaliacao = 0.0, totalAvaliacoes = 3, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico"))),
-//        Prestador(id = 4, nome = "RIMBEIRO", avaliacao = 3.5, totalAvaliacoes = 10, distancia = 2, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico")))
-//    )
-//
-//    val progresso = remember { Animatable(1f) }
-//    var resetKey by remember { mutableStateOf(0) }
-//
-//    LaunchedEffect(resetKey) {
-//        progresso.snapTo(0f) // Garante que comece do zero imediatamente ao resetar
-//        progresso.animateTo(
-//            targetValue = 1f,
-//            animationSpec = infiniteRepeatable(
-//                animation = tween(durationMillis = 3 * 60 * 1000, easing = LinearEasing),
-//                repeatMode = RepeatMode.Restart
-//            )
-//        )
-//    }
-//
-//    Scaffold(
-//        containerColor = Color.White,
-//        topBar = {
-//            TopAppBar(
-//                title = {
-//                    Row(
-//                        modifier = Modifier
-//                            .fillMaxWidth(),
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.Center
-//                    ) {
-//                        Image(
-//                            painter = painterResource(R.drawable.logo_home),
-//                            contentDescription = "DriveZ",
-//                            modifier = Modifier
-//                                .width(220.dp)
-//                                .height(50.dp)
-//                        )
-//                    }
-//                },
-//                actions = {
-//                    IconButton(
-//                        onClick = {
-//                            //Depois adicionar a logica de trocar de icone e desligar as notificações do app
-//                        }
-//                    ) {
-//                        Icon(
-//                            painter = painterResource(R.drawable.baseline_notifications_active_24),
-//                            contentDescription = "Notificação Ativa",
-//                            tint = AppColors.DarkBlue,
-//                            modifier = Modifier
-//                                .size(50.dp)
-//                                .padding(end = 15.dp)
-//                        )
-//                    }
-//                },
-//                colors = TopAppBarDefaults.topAppBarColors(
-//                    containerColor = Color.White
-//                )
-//            )
-//        },
-//        bottomBar = { BottomClienteBar(navController = navController) }
-//    ) { paddingValues ->
-//        Column(
-//            modifier = Modifier
-//                .padding(paddingValues)
-//                .fillMaxSize()
-//                .padding(horizontal = 10.dp)
-//        ) {
-//            Column(
-//                modifier = Modifier.padding(16.dp)
-//            ) {
-//                Row(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    horizontalArrangement = Arrangement.SpaceBetween,
+//                        .height(30.dp),
+//                    horizontalArrangement = Arrangement.spacedBy(10.dp),
 //                    verticalAlignment = Alignment.CenterVertically
 //                ) {
-//                    Column() {
-//                        Text(
-//                            text = "Mostrando prestadores próximos a você",
-//                            color = Color.Black,
-//                            fontFamily = fontFamily,
-//                            fontWeight = FontWeight.SemiBold,
-//                            fontSize = 15.sp
-//                        )
-//                        Spacer(modifier = Modifier.height(8.dp))
-//                        LinearProgressIndicator(
-//                            progress = {progresso.value},
-//                            modifier = Modifier
-//                                .fillMaxWidth(0.8f)
-//                                .height(4.dp),
-//                            color = Color.Red
-//                        )
-//                    }
-//                    Icon(
-//                        painter = painterResource(R.drawable.baseline_refresh_24),
-//                        contentDescription = "Atualizar",
-//                        tint = AppColors.DarkBlue,
-//                        modifier = Modifier
-//                            .size(35.dp)
-//                            .clickable { resetKey++ }
+//
+//                    Avaliacao(prestador.avaliacao, 24.dp, 2.dp)
+//
+//                    Text(
+//                        text = "(${prestador.totalAvaliacoes})",
+//                        fontFamily = fontFamily,
+//                        fontWeight = FontWeight.Bold,
+//                        color = Color.Black,
 //                    )
 //                }
-//                Button(
-//                    onClick = {},
-//                    modifier = Modifier
-//                        .padding(top = 8.dp),
-//                    shape = RoundedCornerShape(15.dp),
-//                    colors = ButtonDefaults.buttonColors(
-//                        containerColor = AppColors.SecondaryRed,
-//                        contentColor = Color.White
-//                    )
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.spacedBy(15.dp)
 //                ) {
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.SpaceEvenly
-//                    ) {
-//                        Icon(
-//                            painter = painterResource(R.drawable.baseline_filter_alt_24),
-//                            contentDescription = "Filtrar",
-//                            tint = Color.White
-//                        )
-//                        Spacer(modifier = Modifier.width(10.dp))
-//                        Text(
-//                            text = "Filtrar"
-//                        )
+//                    prestador.categorias.forEach { item ->
+//                        Row(
+//                            modifier = Modifier
+//                                .clip(RoundedCornerShape(10.dp))
+//                                .border(1.dp, AppColors.BorderGray, RoundedCornerShape(10.dp))
+//                        ) {
+//                            Text(
+//                                text = item.nome,
+//                                fontFamily = fontFamily,
+//                                fontWeight = FontWeight.SemiBold,
+//                                color = Color.Black,
+//                                modifier = Modifier
+//                                    .padding(vertical = 5.dp, horizontal = 15.dp)
+//                            )
+//                        }
 //                    }
 //                }
-//            }
-//            LazyColumn(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .fillMaxHeight()
-//                    .padding(bottom = 40.dp),
-//                horizontalAlignment = Alignment.CenterHorizontally,
-//                verticalArrangement = Arrangement.spacedBy(20.dp)
-//            ) {
-//                items(listaPrestadores){
-//                    CardPrestador(prestador = it, navController = navController)
-//                }
+//
 //            }
 //        }
 //    }
 //}
-
-@Composable
-fun CardPrestador(prestador: Prestador, modifier: Modifier = Modifier, navController: NavController) {
-
-
-    Card(
-        modifier = modifier
-            .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(15.dp))
-            .clickable {
-                navController.navigate("home/cliente/servico/${prestador.id}")
-            },
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp,
-        ),
-        colors = CardDefaults.cardColors(
-            containerColor = AppColors.CardBackground
-        ),
-        shape = RoundedCornerShape(15.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(vertical = 15.dp, horizontal = 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            //Depois substituir por um asyc image
-            Icon(
-                painter = painterResource(R.drawable.baseline_person_24),
-                contentDescription = "Prestador",
-                tint = AppColors.DarkBlue,
-                modifier = Modifier
-                    .size(70.dp)
-                    .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100))
-            )
-            Spacer(modifier = Modifier.width(20.dp))
-            Column(
-                modifier = Modifier,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(
-                    text = prestador.nome,
-                    fontFamily = fontFamily,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = AppColors.SecondaryRed
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(30.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-
-                    Avaliacao(prestador.avaliacao, 24.dp, 2.dp)
-
-                    Text(
-                        text = "(${prestador.totalAvaliacoes})",
-                        fontFamily = fontFamily,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(15.dp)
-                ) {
-                    prestador.categorias.forEach { item ->
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
-                                .border(1.dp, AppColors.BorderGray, RoundedCornerShape(10.dp))
-                        ) {
-                            Text(
-                                text = item.nome,
-                                fontFamily = fontFamily,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.Black,
-                                modifier = Modifier
-                                    .padding(vertical = 5.dp, horizontal = 15.dp)
-                            )
-                        }
-                    }
-                }
-
-            }
-        }
-    }
-}
 
 
 @Composable
@@ -1025,41 +540,41 @@ fun ServicoScreen(navController: NavController, prestadorId: String) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun ClienteRegistroDePedidosScreen(navController: NavController) {
-
-    val listaDePedidos = listOf(
-        Pedido(1, StatusPedido.PENDENTE, "2026-04-24 09:00", "Av. Paulista, 1000", "Rua Augusta, 200", "Entrega de documentos", "2.5 km", 101, 201),
-        Pedido(2, StatusPedido.EM_ANDAMENTO, "2026-04-24 10:30", "Rua da Consolação, 50", "Av. Rebouças, 800", "Compra de supermercado", "4.0 km", 102, 202),
-        Pedido(3, StatusPedido.FINALIZADO, "2026-04-24 08:00", "Praça da Sé, 10", "Bairro Liberdade, 100", "Entrega de presente", "1.2 km", 103, 203),
-        Pedido(4, StatusPedido.PENDENTE, "2026-04-24 11:00", "Av. Brigadeiro, 500", "Rua Oscar Freire, 300", "Transporte de móveis", "5.8 km", 104, 204),
-        Pedido(5, StatusPedido.EM_ANDAMENTO, "2026-04-24 12:15", "Aeroporto de Congonhas", "Hotel Transamerica", "Levar bagagem", "8.5 km", 105, 205),
-        Pedido(6, StatusPedido.FINALIZADO, "2026-04-24 07:30", "Centro Histórico", "Rodoviária", "Envio de pacote urgente", "12.0 km", 106, 206)
-    )
-
-    Scaffold(
-        topBar = {
-            AplicationTopBar(navController = navController, titulo = "Registro de Pedidos", retornavel = false)
-        },
-        bottomBar = {
-            BottomClienteBar(navController = navController, shadow = false)
-        },
-        containerColor = Color.White
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(15.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            items(listaDePedidos){ pedido ->
-                ClienteCardHistoricoPedido(pedido)
-            }
-        }
-    }
-}
+//@RequiresApi(Build.VERSION_CODES.O)
+//@Composable
+//fun ClienteRegistroDePedidosScreen(navController: NavController) {
+//
+//    val listaDePedidos = listOf(
+//        Pedido(1, StatusPedido.PENDENTE, "2026-04-24 09:00", "Av. Paulista, 1000", "Rua Augusta, 200", "Entrega de documentos", "2.5 km", 101, 201),
+//        Pedido(2, StatusPedido.EM_ANDAMENTO, "2026-04-24 10:30", "Rua da Consolação, 50", "Av. Rebouças, 800", "Compra de supermercado", "4.0 km", 102, 202),
+//        Pedido(3, StatusPedido.FINALIZADO, "2026-04-24 08:00", "Praça da Sé, 10", "Bairro Liberdade, 100", "Entrega de presente", "1.2 km", 103, 203),
+//        Pedido(4, StatusPedido.PENDENTE, "2026-04-24 11:00", "Av. Brigadeiro, 500", "Rua Oscar Freire, 300", "Transporte de móveis", "5.8 km", 104, 204),
+//        Pedido(5, StatusPedido.EM_ANDAMENTO, "2026-04-24 12:15", "Aeroporto de Congonhas", "Hotel Transamerica", "Levar bagagem", "8.5 km", 105, 205),
+//        Pedido(6, StatusPedido.FINALIZADO, "2026-04-24 07:30", "Centro Histórico", "Rodoviária", "Envio de pacote urgente", "12.0 km", 106, 206)
+//    )
+//
+//    Scaffold(
+//        topBar = {
+//            AplicationTopBar(navController = navController, titulo = "Registro de Pedidos", retornavel = false)
+//        },
+//        bottomBar = {
+//            BottomClienteBar(navController = navController, shadow = false)
+//        },
+//        containerColor = Color.White
+//    ) { paddingValues ->
+//        LazyColumn(
+//            modifier = Modifier
+//                .padding(paddingValues)
+//                .fillMaxSize(),
+//            verticalArrangement = Arrangement.spacedBy(15.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            items(listaDePedidos){ pedido ->
+//                ClienteCardHistoricoPedido(pedido)
+//            }
+//        }
+//    }
+//}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

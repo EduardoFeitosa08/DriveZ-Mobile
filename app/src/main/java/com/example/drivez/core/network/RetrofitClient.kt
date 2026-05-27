@@ -1,5 +1,6 @@
 package com.example.drivez.core.network
 
+import com.example.drivez.core.PedidoApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -35,5 +36,8 @@ object RetrofitClient {
     }
     val homeApiService: HomeApiService by lazy{
         retrofit.create(HomeApiService::class.java)
+    }
+    val historicoPedidoApiService: PedidoApiService by lazy {
+        retrofit.create(PedidoApiService::class.java)
     }
 }

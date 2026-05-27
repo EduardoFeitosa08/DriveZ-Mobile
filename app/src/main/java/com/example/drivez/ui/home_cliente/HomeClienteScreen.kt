@@ -49,12 +49,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.drivez.CardPrestador
 import com.example.drivez.R
 import com.example.drivez.core.network.theme.AppColors
 import com.example.drivez.fontFamily
 import com.example.drivez.ui.components.BottomClienteBar
 import com.example.drivez.ui.components.CardCategorias
+import com.example.drivez.ui.components.CardPrestador
 
 //@OptIn(ExperimentalMaterial3Api::class)
 //@Composable
