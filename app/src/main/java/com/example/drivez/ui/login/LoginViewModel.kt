@@ -8,13 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.drivez.data.repository.AuthRepository
 import kotlinx.coroutines.launch
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
-
 class LoginViewModel(
     private val repository: AuthRepository = AuthRepository()
 ) : ViewModel() {
@@ -37,7 +30,7 @@ class LoginViewModel(
 
                 uiState = LoginUiState.Sucesso(
                     userId = response.idUsuario,
-                    tipoUsuario = response.tipoUsuario,
+                    tipoUsuario = response.tipoUsuario ?: "Prestador",
                     cadastroCompleto = response.cadastroCompleto
                 )
             } catch (e: Exception) {

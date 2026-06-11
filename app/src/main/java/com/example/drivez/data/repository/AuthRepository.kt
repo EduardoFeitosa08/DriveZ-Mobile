@@ -1,5 +1,6 @@
 package com.example.drivez.data.repository
 
+import com.example.drivez.core.network.AuthApiService
 import com.example.drivez.core.network.RetrofitClient
 import com.example.drivez.data.dto.CadastroInicialRequest
 import com.example.drivez.data.dto.ConcluirClienteRequest

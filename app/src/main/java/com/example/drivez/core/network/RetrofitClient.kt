@@ -37,6 +37,9 @@ object RetrofitClient {
     val homeApiService: HomeApiService by lazy{
         retrofit.create(HomeApiService::class.java)
     }
+    val homePrestadorApiService: HomePrestadorApiService by lazy {
+        retrofit.create(HomePrestadorApiService::class.java)
+    }
     val historicoPedidoApiService: PedidoApiService by lazy {
         retrofit.create(PedidoApiService::class.java)
     }

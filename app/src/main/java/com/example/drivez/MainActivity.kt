@@ -101,8 +101,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.layout.ContentScale
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.example.drivez.core.network.HomePrestadorApiService
+import com.example.drivez.core.network.RetrofitClient
 import com.example.drivez.ui.components.AddressTimeline
 import com.example.drivez.ui.components.AplicationTopBar
 import com.example.drivez.ui.components.Avaliacao
@@ -137,6 +141,8 @@ import com.example.drivez.core.network.theme.AppColors
 import com.example.drivez.ui.cadastro.CadastroScreen
 import com.example.drivez.ui.cadastro.CadastroViewModel
 import com.example.drivez.ui.home_cliente.HomeClienteScreen
+import com.example.drivez.ui.home_prestador.HomePrestadorScreen
+import com.example.drivez.ui.home_prestador.HomePrestadorViewModel
 import com.example.drivez.ui.login.LoginScreen
 import com.example.drivez.ui.registro_pedidos_cliente.ClienteRegistroDePedidosScreen
 import com.example.drivez.util.FormatarData
@@ -240,8 +246,18 @@ class MainActivity : ComponentActivity() {
 
                         //Prestador
 
-                        composable("home/prestador"){
-                            HomePrestadorScreen(navController = navController)
+                        composable("home/prestador") {
+                            val apiService = RetrofitClient.homePrestadorApiService
+
+                            val factory = object : ViewModelProvider.Factory {
+                                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                    return HomePrestadorViewModel(apiService) as T
+                                }
+                            }
+
+                            val viewModel: HomePrestadorViewModel = viewModel(factory = factory)
+
+                            HomePrestadorScreen(navController = navController, viewModel = viewModel)
                         }
 
                         composable(
@@ -1932,200 +1948,198 @@ fun ClienteGaragemVirtualScreen(navController: NavController, clienteId: String)
 
 //PRESTADOR
 
-@Composable
-fun HomePrestadorScreen(navController: NavController) {
-
-    val listaDeClientesTeste = listOf(
-        Cliente(
-            id = 1,
-            nome = "Rogerio Silva",
-            telefone = "(11) 98888-7777",
-            email = "rogerio.silva@email.com",
-            imgPerfil = "https://randomuser.me/api/portraits/men/1.jpg",
-            cpf = "123.456.789-00",
-            distancia = 0.423
-        ),
-        Cliente(
-            id = 2,
-            nome = "Ana Beatriz",
-            telefone = "(21) 97777-6666",
-            email = "ana.beatriz@email.com",
-            imgPerfil = "https://randomuser.me/api/portraits/women/2.jpg",
-            cpf = "987.654.321-11",
-            distancia = 1.2
-        ),
-        Cliente(
-            id = 3,
-            nome = "Oficina do João",
-            telefone = "(31) 3444-5555",
-            email = "contato@oficinajoao.com",
-            imgPerfil = "https://randomuser.me/api/portraits/men/3.jpg",
-            cnpj = "12.345.678/0001-99",
-            distancia = 2.5
-        ),
-        Cliente(
-            id = 4,
-            nome = "Marcos Oliveira",
-            telefone = "(41) 96666-5555",
-            email = "marcos.o@email.com",
-            imgPerfil = "https://randomuser.me/api/portraits/men/4.jpg",
-            cpf = "444.555.666-77",
-            distancia = 0.850
-        ),
-        Cliente(
-            id = 5,
-            nome = "Clínica Saúde Total",
-            telefone = "(11) 3222-1111",
-            email = "adm@saudetotal.com.br",
-            imgPerfil = "https://randomuser.me/api/portraits/women/5.jpg",
-            cnpj = "98.765.432/0001-00",
-            distancia = 3.1
-        ),
-        Cliente(
-            id = 6,
-            nome = "Ricardo Santos",
-            telefone = "(71) 95555-4444",
-            email = "ricardo.santos@email.com",
-            imgPerfil = "https://randomuser.me/api/portraits/men/6.jpg",
-            cpf = "222.333.444-55",
-            distancia = 0.300
-        ),
-        Cliente(
-            id = 7,
-            nome = "Luciana Costa",
-            telefone = "(81) 94444-3333",
-            email = "lu.costa@email.com",
-            imgPerfil = "https://randomuser.me/api/portraits/women/7.jpg",
-            cpf = "888.999.000-11",
-            distancia = 1.7
-        ),
-        Cliente(
-            id = 8,
-            nome = "Padaria Pão Quente",
-            telefone = "(19) 3888-9999",
-            email = "pedidos@paoquente.com",
-            imgPerfil = "https://randomuser.me/api/portraits/women/8.jpg",
-            cnpj = "55.444.333/0001-22",
-            distancia = 5.4
-        ),
-        Cliente(
-            id = 9,
-            nome = "Fernando Souza",
-            telefone = "(48) 93333-2222",
-            email = "f.souza@email.com",
-            imgPerfil = "https://randomuser.me/api/portraits/men/9.jpg",
-            cpf = "777.666.555-44",
-            distancia = 0.150
-        ),
-        Cliente(
-            id = 10,
-            nome = "Beatriz Mendes",
-            telefone = "(62) 92222-1111",
-            email = "bia.mendes@email.com",
-            imgPerfil = "https://randomuser.me/api/portraits/women/10.jpg",
-            cpf = "111.000.999-88",
-            distancia = 2.9
-        )
-    )
-
-    var isListVisible by remember { mutableStateOf(false) }
-
-    val progresso = remember { Animatable(1f) }
-    var resetKey by remember { mutableStateOf(0) }
-
-    LaunchedEffect(resetKey) {
-        progresso.snapTo(0f)
-        progresso.animateTo(
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 3 * 60 * 1000, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart
-            )
-        )
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF0F4F7))) {
-            Text("O mapa será implementado aqui", modifier = Modifier.align(Alignment.Center))
-        }
-
-        Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-            if (!isListVisible) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    FloatingActionButton(
-                        onClick = { isListVisible = true },
-                        containerColor = Color(0xFFB34B44),
-                        contentColor = Color.White,
-                        shape = CircleShape,
-                        elevation = FloatingActionButtonDefaults.elevation(8.dp)
-                    ) {
-                        Icon(painterResource(R.drawable.outline_keyboard_double_arrow_up_24), contentDescription = "Subir")
-                    }
-                }
-            }
-
-            if (isListVisible) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.6f)
-                        .padding(horizontal = 20.dp),
-                    shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-                    color = Color.White,
-                    shadowElevation = 16.dp
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        IconButton(
-                            onClick = { isListVisible = false },
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        ) {
-                            Icon(painterResource(R.drawable.outline_keyboard_double_arrow_down_24), contentDescription = "Descer", tint = Color.Gray)
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Mostrando solicitações próximas a você", fontSize = 14.sp, color = Color.Black)
-                            IconButton(
-                                onClick = {resetKey++}
-                            ) {
-                                Icon(painterResource(R.drawable.baseline_refresh_24), contentDescription = null, modifier = Modifier.size(30.dp), tint = AppColors.DarkBlue)
-                            }
-                        }
-
-                        LinearProgressIndicator(
-                            progress = {progresso.value},
-                            modifier = Modifier
-                                .fillMaxWidth(0.8f)
-                                .height(4.dp),
-                            color = Color.Red
-                        )
-
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        LazyColumn {
-                            items(listaDeClientesTeste) {
-                                CardCliente(it, navController)
-                            }
-                        }
-                    }
-                }
-            }
-
-            BottomPrestadorBar(navController = navController)
-        }
-    }
-}
+//@Composable
+//fun HomePrestadorScreen(navController: NavController) {
+//
+//    val listaDeClientesTeste = listOf(
+//        Cliente(
+//            id = 1,
+//            nome = "Rogerio Silva",
+//            telefone = "(11) 98888-7777",
+//            email = "rogerio.silva@email.com",
+//            imgPerfil = "https://randomuser.me/api/portraits/men/1.jpg",
+//            cpf = "123.456.789-00",
+//            distancia = 0.423
+//        ),
+//        Cliente(
+//            id = 2,
+//            nome = "Ana Beatriz",
+//            telefone = "(21) 97777-6666",
+//            email = "ana.beatriz@email.com",
+//            imgPerfil = "https://randomuser.me/api/portraits/women/2.jpg",
+//            cpf = "987.654.321-11",
+//            distancia = 1.2
+//        ),
+//        Cliente(
+//            id = 3,
+//            nome = "Oficina do João",
+//            telefone = "(31) 3444-5555",
+//            email = "contato@oficinajoao.com",
+//            imgPerfil = "https://randomuser.me/api/portraits/men/3.jpg",
+//            cnpj = "12.345.678/0001-99",
+//            distancia = 2.5
+//        ),
+//        Cliente(
+//            id = 4,
+//            nome = "Marcos Oliveira",
+//            telefone = "(41) 96666-5555",
+//            email = "marcos.o@email.com",
+//            imgPerfil = "https://randomuser.me/api/portraits/men/4.jpg",
+//            cpf = "444.555.666-77",
+//            distancia = 0.850
+//        ),
+//        Cliente(
+//            id = 5,
+//            nome = "Clínica Saúde Total",
+//            telefone = "(11) 3222-1111",
+//            email = "adm@saudetotal.com.br",
+//            imgPerfil = "https://randomuser.me/api/portraits/women/5.jpg",
+//            cnpj = "98.765.432/0001-00",
+//            distancia = 3.1
+//        ),
+//        Cliente(
+//            id = 6,
+//            nome = "Ricardo Santos",
+//            telefone = "(71) 95555-4444",
+//            email = "ricardo.santos@email.com",
+//            imgPerfil = "https://randomuser.me/api/portraits/men/6.jpg",
+//            cpf = "222.333.444-55",
+//            distancia = 0.300
+//        ),
+//        Cliente(
+//            id = 7,
+//            nome = "Luciana Costa",
+//            telefone = "(81) 94444-3333",
+//            email = "lu.costa@email.com",
+//            imgPerfil = "https://randomuser.me/api/portraits/women/7.jpg",
+//            cpf = "888.999.000-11",
+//            distancia = 1.7
+//        ),
+//        Cliente(
+//            id = 8,
+//            nome = "Padaria Pão Quente",
+//            telefone = "(19) 3888-9999",
+//            email = "pedidos@paoquente.com",
+//            imgPerfil = "https://randomuser.me/api/portraits/women/8.jpg",
+//            cnpj = "55.444.333/0001-22",
+//            distancia = 5.4
+//        ),
+//        Cliente(
+//            id = 9,
+//            nome = "Fernando Souza",
+//            telefone = "(48) 93333-2222",
+//            email = "f.souza@email.com",
+//            imgPerfil = "https://randomuser.me/api/portraits/men/9.jpg",
+//            cpf = "777.666.555-44",
+//            distancia = 0.150
+//        ),
+//        Cliente(
+//            id = 10,
+//            nome = "Beatriz Mendes",
+//            telefone = "(62) 92222-1111",
+//            email = "bia.mendes@email.com",
+//            imgPerfil = "https://randomuser.me/api/portraits/women/10.jpg",
+//            cpf = "111.000.999-88",
+//            distancia = 2.9
+//        )
+//    )
+//
+//    var isListVisible by remember { mutableStateOf(false) }
+//
+//    val progresso = remember { Animatable(1f) }
+//    var resetKey by remember { mutableStateOf(0) }
+//
+//    LaunchedEffect(resetKey) {
+//        progresso.snapTo(0f)
+//        progresso.animateTo(
+//            targetValue = 1f,
+//            animationSpec = infiniteRepeatable(
+//                animation = tween(durationMillis = 3 * 60 * 1000, easing = LinearEasing),
+//                repeatMode = RepeatMode.Restart
+//            )
+//        )
+//    }
+//
+//    Box(modifier = Modifier.fillMaxSize()) {
+//        Box(modifier = Modifier
+//            .fillMaxSize()
+//            .background(Color(0xFFF0F4F7))) {
+//            Text("O mapa será implementado aqui", modifier = Modifier.align(Alignment.Center))
+//        }
+//
+//        Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+//            if (!isListVisible) {
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(bottom = 8.dp),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    FloatingActionButton(
+//                        onClick = { isListVisible = true },
+//                        containerColor = Color(0xFFB34B44),
+//                        contentColor = Color.White,
+//                        shape = CircleShape,
+//                        elevation = FloatingActionButtonDefaults.elevation(8.dp)
+//                    ) {
+//                        Icon(painterResource(R.drawable.outline_keyboard_double_arrow_up_24), contentDescription = "Subir")
+//                    }
+//                }
+//            }
+//
+//            if (isListVisible) {
+//                Surface(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .fillMaxHeight(0.6f)
+//                        .padding(horizontal = 20.dp),
+//                    shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+//                    color = Color.White,
+//                    shadowElevation = 16.dp
+//                ) {
+//                    Column(modifier = Modifier.padding(16.dp)) {
+//                        IconButton(
+//                            onClick = { isListVisible = false },
+//                            modifier = Modifier.align(Alignment.CenterHorizontally)
+//                        ) {
+//                            Icon(painterResource(R.drawable.outline_keyboard_double_arrow_down_24), contentDescription = "Descer", tint = Color.Gray)
+//                        }
+//
+//                        Row(
+//                            modifier = Modifier.fillMaxWidth(),
+//                            horizontalArrangement = Arrangement.SpaceBetween,
+//                            verticalAlignment = Alignment.CenterVertically
+//                        ) {
+//                            Text("Mostrando solicitações próximas a você", fontSize = 14.sp, color = Color.Black)
+//                            IconButton(
+//                                onClick = {resetKey++}
+//                            ) {
+//                                Icon(painterResource(R.drawable.baseline_refresh_24), contentDescription = null, modifier = Modifier.size(30.dp), tint = AppColors.DarkBlue)
+//                            }
+//                        }
+//
+//                        LinearProgressIndicator(
+//                            progress = { progresso.value },
+//                            modifier = Modifier.fillMaxWidth(0.8f).height(4.dp),
+//                            color = Color.Red
+//                        )
+//
+//
+//                        Spacer(modifier = Modifier.height(16.dp))
+//
+//                        LazyColumn {
+//                            items(listaDeClientesTeste) {
+//                                CardCliente(it, navController)
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            BottomPrestadorBar(navController = navController)
+//        }
+//    }
+//}
 
 @Composable
 fun DetalhesSolicitacaoScreen(navController: NavController, clienteId: String) {

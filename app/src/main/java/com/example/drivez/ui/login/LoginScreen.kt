@@ -42,6 +42,7 @@ import com.example.drivez.fontFamily
 import com.example.drivez.ui.components.CampoDigitar
 import com.example.drivez.core.network.theme.AppColors
 import com.example.drivez.ui.components.CadastroCampoDigitar
+import android.util.Log
 
 //@Composable
 //fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
@@ -140,15 +141,18 @@ fun LoginScreen(
 
     LaunchedEffect(state) {
         if (state is LoginUiState.Sucesso) {
-            if (state.cadastroCompleto) {
-                navController.navigate("home") {
-                    popUpTo("login") { inclusive = true }
-                }
-            } else {
-                if (state.tipoUsuario == "CLIENTE") {
-                    navController.navigate("completar_cadastro_cliente/${state.userId}")
+
+            val cadastroIgnoradoParaTestes = true
+
+            if (cadastroIgnoradoParaTestes) {
+                if (state.tipoUsuario == "Prestador") {
+                    navController.navigate("home/prestador") {
+                        popUpTo("login") { inclusive = true }
+                    }
                 } else {
-                    navController.navigate("completar_cadastro_prestador/${state.userId}")
+                    navController.navigate("home/cliente") {
+                        popUpTo("login") { inclusive = true }
+                    }
                 }
             }
         }
