@@ -1,7 +1,5 @@
-package com.example.drivez.ui.registro_pedidos_cliente
+package com.example.drivez.ui.registro_pedidos_prestador
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,24 +15,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.drivez.ui.components.ClienteCardHistoricoPedido
 import com.example.drivez.ui.components.AplicationTopBar
-import com.example.drivez.ui.components.BottomClienteBar
+import com.example.drivez.ui.components.BottomPrestadorBar
+import com.example.drivez.ui.components.PrestadorCardHistoricoPedido
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ClienteRegistroDePedidosScreen(
+fun PrestadorRegistroDePedidosScreen(
     navController: NavController,
-    viewModel: ClienteRegistroDePedidosViewModel = viewModel()
+    viewModel: PrestadorRegistroDePedidosViewModel = viewModel()
 ) {
-    val listaDePedidos by viewModel.pedidos.collectAsState()
+    val uiState = viewModel.uiState
 
     Scaffold(
         topBar = {
-            AplicationTopBar(navController = navController, titulo = "Registro de Pedidos", retornavel = false)
+            AplicationTopBar(navController = navController, titulo = "Histórico de Pedidos", retornavel = false)
         },
         bottomBar = {
-            BottomClienteBar(navController = navController, shadow = false)
+            BottomPrestadorBar(navController = navController)
         },
         containerColor = Color.White
     ) { paddingValues ->
@@ -45,8 +42,8 @@ fun ClienteRegistroDePedidosScreen(
             verticalArrangement = Arrangement.spacedBy(15.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(listaDePedidos) { pedido ->
-                ClienteCardHistoricoPedido(pedido)
+            items(uiState.listaPedidos) { pedido ->
+                PrestadorCardHistoricoPedido(pedido)
             }
         }
     }

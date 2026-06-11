@@ -38,8 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import coil3.compose.AsyncImage
-import com.example.drivez.ConfigurarPedidoScreen
 import com.example.drivez.R
 import com.example.drivez.fontFamily
 import com.example.drivez.data.model.BottomNavItem

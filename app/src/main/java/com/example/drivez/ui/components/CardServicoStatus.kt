@@ -3,31 +3,15 @@ package com.example.drivez.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,16 +19,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.example.drivez.R
-import com.example.drivez.data.model.Prestador
 import com.example.drivez.fontFamily
 import com.example.drivez.core.network.theme.AppColors
 
 @Composable
-fun CardServicoStatus(modifier: Modifier = Modifier, prestador: Prestador,
-                      cancelarOnClick: () -> Unit, chatRapidoClick: () -> Unit) {
+fun CardServicoStatus(
+    modifier: Modifier = Modifier,
+    nome: String,
+    id: String,
+    isCliente: Boolean = true,
+    avaliacao: Double,
+    distancia: String,
+    origem: String,
+    destino: String,
+    cancelarOnClick: () -> Unit,
+    chatRapidoClick: () -> Unit
+) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
@@ -52,32 +45,53 @@ fun CardServicoStatus(modifier: Modifier = Modifier, prestador: Prestador,
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Avaliacao(avaliacao = prestador.avaliacao, tamanho = 24.dp, espacamento = 4.dp)
+            // Nome no topo
+            Text(
+                text = nome,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = AppColors.DarkBlue,
+                fontFamily = fontFamily
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Avaliação
+            Avaliacao(avaliacao = avaliacao, tamanho = 24.dp, espacamento = 4.dp)
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Foto embaixo
             Surface(
                 modifier = Modifier.size(80.dp),
                 shape = CircleShape,
                 border = BorderStroke(1.dp, AppColors.DarkBlue)
             ) {
+                val imageUrl = if (isCliente) {
+                    "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/clientes/foto/$id"
+                } else {
+                    id // Caso seja prestador, 'id' pode ser a URL direta ou tratada em outro lugar
+                }
+
                 AsyncImage(
-                    model = "${prestador.perfilImgUrl}",
+                    model = imageUrl,
                     placeholder = painterResource(R.drawable.baseline_person_24),
                     error = painterResource(R.drawable.baseline_person_24),
-                    contentDescription = null,
+                    contentDescription = "Foto de Perfil",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-
+            // Distância
             Surface(
                 color = Color(0xFFA54D4D),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
-                    text = "423m de distancia",
+                    text = distancia,
                     color = Color.White,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     fontWeight = FontWeight.Bold
@@ -86,16 +100,18 @@ fun CardServicoStatus(modifier: Modifier = Modifier, prestador: Prestador,
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Endereços
             AddressTimeline(
-                origin = "R. João Blesa - 45. Alphaville",
-                destination = "R. João Blesa - 45. Alphaville"
+                origin = origem,
+                destination = destino
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Botões de Ação
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(26.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Button(
                     onClick = cancelarOnClick,
@@ -117,7 +133,7 @@ fun CardServicoStatus(modifier: Modifier = Modifier, prestador: Prestador,
                 IconButton(
                     onClick = chatRapidoClick,
                     modifier = Modifier
-                        .weight(1f)
+                        .weight(0.4f)
                         .height(55.dp),
                     shape = RoundedCornerShape(15.dp),
                     colors = IconButtonDefaults.iconButtonColors(
@@ -127,8 +143,9 @@ fun CardServicoStatus(modifier: Modifier = Modifier, prestador: Prestador,
                     Icon(
                         painter = painterResource(R.drawable.baseline_chat_bubble_24),
                         contentDescription = "Chat",
-                        modifier = Modifier.size(48.dp),
-                        tint = Color.White)
+                        modifier = Modifier.size(32.dp),
+                        tint = Color.White
+                    )
                 }
             }
         }
@@ -179,7 +196,7 @@ fun AddressTimeline(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(32.dp)) // Espaço para alinhar com a linha
+            Spacer(modifier = Modifier.height(32.dp))
 
             Text(
                 text = destination,

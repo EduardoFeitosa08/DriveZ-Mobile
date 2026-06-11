@@ -1,6 +1,5 @@
-package com.example.drivez.core.network
+package com.example.drivez.data.model
 
-import com.example.drivez.data.model.Pedido
 import retrofit2.http.GET
 import retrofit2.http.Path
 

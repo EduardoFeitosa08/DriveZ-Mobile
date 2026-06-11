@@ -9,5 +9,7 @@ data class Pedido(
     val descricao: String,
     val distancia: String,
     val prestadorId: Int,
-    val clienteId: Int
+    val clienteId: Int,
+    val clienteNome: String? = null,
+    val clienteImgUrl: String? = null
 )

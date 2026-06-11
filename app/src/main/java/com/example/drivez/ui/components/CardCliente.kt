@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.example.drivez.R
 import com.example.drivez.data.model.Cliente
 import com.example.drivez.core.network.theme.AppColors
@@ -58,7 +59,13 @@ fun CardCliente(cliente: Cliente ,navController: NavController, ) {
                     color = Color(0xFFE3F2FD),
                     modifier = Modifier.size(60.dp)
                 ) {
-                    Icon(painterResource(R.drawable.baseline_person_24), contentDescription = null, tint = Color(0xFF557895), modifier = Modifier.padding(8.dp))
+                    AsyncImage(
+                        model = "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/clientes/foto/${cliente.id}",
+                        placeholder = painterResource(R.drawable.baseline_person_24),
+                        error = painterResource(R.drawable.baseline_person_24),
+                        contentDescription = "Foto do Cliente",
+                        modifier = Modifier.padding(2.dp)
+                    )
                 }
                 Avaliacao(avaliacao = 3.0, tamanho = 14.dp, espacamento = 2.dp)
             }

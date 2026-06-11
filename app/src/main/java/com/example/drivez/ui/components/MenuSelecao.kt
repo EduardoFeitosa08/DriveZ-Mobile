@@ -49,6 +49,8 @@
 //    }
 //}
 
+package com.example.drivez.ui.components
+
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -60,7 +62,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.drivez.fontFamily
+import com.example.drivez.core.network.theme.fontFamily
 import com.example.drivez.core.network.theme.AppColors
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -1,15 +1,13 @@
 package com.example.drivez.core.network
 
-import com.example.drivez.core.PedidoApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.create
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private const val BASE_URL = "http://192.168.0.88:8080/v1/drivez/"
+    private const val BASE_URL = "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -21,7 +19,6 @@ object RetrofitClient {
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
         .build()
-
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
@@ -40,7 +37,9 @@ object RetrofitClient {
     val homePrestadorApiService: HomePrestadorApiService by lazy {
         retrofit.create(HomePrestadorApiService::class.java)
     }
+    // Agora vai usar a interface correta que está na mesma pasta (network)
     val historicoPedidoApiService: PedidoApiService by lazy {
         retrofit.create(PedidoApiService::class.java)
     }
 }
+

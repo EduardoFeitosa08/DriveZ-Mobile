@@ -29,7 +29,7 @@ class HomePrestadorViewModel(
                 val pedidosResponse = apiService.getTodosOsPedidos()
 
                 if (pedidosResponse.isSuccessful && pedidosResponse.body() != null) {
-                    val listaPedidos = pedidosResponse.body()!!
+                    val listaPedidos = pedidosResponse.body()!!.response
 
                     val listaClientesEnriched = listaPedidos.map { pedido ->
                         async {
@@ -44,7 +44,7 @@ class HomePrestadorViewModel(
                                         telefone = dadosCliente.telefone,
                                         email = dadosCliente.email,
                                         imgPerfil = dadosCliente.imgPerfil,
-                                        distancia = pedido.distancia ?: 0.0,
+                                        distancia = pedido.distancia?.toDoubleOrNull() ?: 0.0,
                                         cpf = dadosCliente.cpf,
                                         cnpj = dadosCliente.cnpj
                                     )

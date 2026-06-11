@@ -5,11 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.drivez.core.session.SessionManager
 import com.example.drivez.data.repository.AuthRepository
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val repository: AuthRepository = AuthRepository()
+    private val repository: AuthRepository = AuthRepository(),
+    private val sessionManager: SessionManager? = null
 ) : ViewModel() {
 
     // Usa a sua sealed interface LoginUiState
@@ -27,6 +29,8 @@ class LoginViewModel(
 
             try {
                 val response = repository.loginPrestador(email, senha)
+
+                sessionManager?.saveSession(response.idUsuario, response.tipoUsuario ?: "Prestador")
 
                 uiState = LoginUiState.Sucesso(
                     userId = response.idUsuario,
