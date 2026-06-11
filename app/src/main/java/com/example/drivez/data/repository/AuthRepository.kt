@@ -1,6 +1,5 @@
 package com.example.drivez.data.repository
 
-import com.example.drivez.core.network.AuthApiService
 import com.example.drivez.core.network.RetrofitClient
 import com.example.drivez.data.dto.CadastroInicialRequest
 import com.example.drivez.data.dto.ConcluirClienteRequest
@@ -16,17 +15,7 @@ class AuthRepository(private val apiService: AuthApiService = RetrofitClient.aut
         return apiService.cadastrarInicial(request)
     }
 
-//    suspend fun login(email: String, senha: String): LoginResponse {
-//        val request = LoginRequest(email, senha)
-//        return apiService.realizarLogin(request)
-//    }
-//
-//    suspend fun loginCliente(email: String, senha: String): LoginResponse {
-//        return apiService.realizarLoginCliente(LoginRequest(email, senha))
-//    }
-//
-//    // Rota 2
-//    suspend fun loginPrestador(email: String, senha: String): LoginResponse {
-//        return apiService.realizarLoginPrestador(LoginRequest(email, senha))
-//    }
+    suspend fun loginPrestador(email: String, senha: String): LoginResponse {
+        return apiService.realizarLogin(LoginRequest(email, senha))
+    }
 }

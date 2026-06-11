@@ -14,8 +14,8 @@ import retrofit2.http.Path
 
 interface AuthApiService {
 
-//    @POST("auth/login")
-//    suspend fun realizarLogin(@Body request: LoginRequest): LoginResponse
+    @POST("login")
+    suspend fun realizarLogin(@Body request: LoginRequest): LoginResponse
 
     @POST("auth/cadastro-inicial")
     suspend fun cadastrarInicial(@Body request: CadastroInicialRequest): LoginResponse

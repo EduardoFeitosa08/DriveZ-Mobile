@@ -9,7 +9,7 @@ import retrofit2.create
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private const val BASE_URL = "http://localhost:8080/v1/drivez/"
+    private const val BASE_URL = "http://192.168.0.88:8080/v1/drivez/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
