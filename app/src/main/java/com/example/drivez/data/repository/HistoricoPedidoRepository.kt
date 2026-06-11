@@ -1,6 +1,5 @@
 package com.example.drivez.data.repository
 
-import com.example.drivez.core.network.PedidoApiService
 import com.example.drivez.core.network.RetrofitClient
 import com.example.drivez.data.model.Pedido
 

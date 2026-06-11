@@ -1,24 +1,33 @@
+import java.util.Properties
+
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
 }
 
 android {
     namespace = "com.example.drivez"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.drivez"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val properties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            properties.load(localPropertiesFile.inputStream())
+        }
+        val mapboxPublicToken = properties.getProperty("MAPBOX_ACCESS_TOKEN") ?: ""
+
+        buildConfigField("String", "MAPBOX_TOKEN", "\"$mapboxPublicToken\"")
+
+        manifestPlaceholders["MAPBOX_ACCESS_TOKEN"] = mapboxPublicToken
     }
 
     buildTypes {
@@ -30,12 +39,22 @@ android {
             )
         }
     }
+
+    buildFeatures {
+        buildConfig = true
+        compose = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    buildFeatures {
-        compose = true
+}
+
+// Configuração moderna para o compilador do Kotlin (Sem o bug de extensão duplicada)
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
     }
 }
 
@@ -76,4 +95,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
+    implementation("com.mapbox.maps:android:11.2.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 }

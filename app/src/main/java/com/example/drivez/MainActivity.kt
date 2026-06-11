@@ -144,7 +144,7 @@ import com.example.drivez.ui.home_cliente.HomeClienteScreen
 import com.example.drivez.ui.home_prestador.HomePrestadorScreen
 import com.example.drivez.ui.home_prestador.HomePrestadorViewModel
 import com.example.drivez.ui.login.LoginScreen
-import com.example.drivez.ui.registro_pedidos_cliente.ClienteRegistroDePedidosScreen
+//import com.example.drivez.ui.registro_pedidos_cliente.ClienteRegistroDePedidosScreen
 import com.example.drivez.util.FormatarData
 import kotlinx.coroutines.launch
 
@@ -193,13 +193,13 @@ class MainActivity : ComponentActivity() {
                             val prestadorId = it.arguments?.getString("prestadorId")
                             ServicoScreen(navController = navController, prestadorId = prestadorId!!)
                         }
-                        composable(
-                            "home/cliente/historico/{clienteId}",
-                            arguments = listOf(navArgument("clienteId") {type = NavType.StringType})
-                        ){
-                            val clienteId = it.arguments?.getString("clienteId")
-                            ClienteRegistroDePedidosScreen(navController = navController)
-                        }
+//                        composable(
+//                            "home/cliente/historico/{clienteId}",
+//                            arguments = listOf(navArgument("clienteId") {type = NavType.StringType})
+//                        ){
+//                            val clienteId = it.arguments?.getString("clienteId")
+//                            ClienteRegistroDePedidosScreen(navController = navController)
+//                        }
                         composable("home/cliente/contatos") {
                             ContatosClienteScreen(navController = navController)
                         }
@@ -320,9 +320,9 @@ class MainActivity : ComponentActivity() {
                             PrestadorGaragemVirtualScreen(navController = navController, prestadorId = prestadorId!!)
                         }
 
-                        composable("home/prestador/historico"){
-                            PrestadorRegistroDePedidosScreen(navController = navController)
-                        }
+//                        composable("home/prestador/historico"){
+//                            PrestadorRegistroDePedidosScreen(navController = navController)
+//                        }
 
                     }
                 }
@@ -3224,41 +3224,41 @@ fun PrestadorGaragemVirtualScreen(navController: NavController, prestadorId: Str
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun PrestadorRegistroDePedidosScreen(navController: NavController) {
-
-    val listaDePedidos = listOf(
-        Pedido(1, StatusPedido.PENDENTE, "2026-04-24 09:00", "Av. Paulista, 1000", "Rua Augusta, 200", "Entrega de documentos", "2.5 km", 101, 201),
-        Pedido(2, StatusPedido.EM_ANDAMENTO, "2026-04-24 10:30", "Rua da Consolação, 50", "Av. Rebouças, 800", "Compra de supermercado", "4.0 km", 102, 202),
-        Pedido(3, StatusPedido.FINALIZADO, "2026-04-24 08:00", "Praça da Sé, 10", "Bairro Liberdade, 100", "Entrega de presente", "1.2 km", 103, 203),
-        Pedido(4, StatusPedido.PENDENTE, "2026-04-24 11:00", "Av. Brigadeiro, 500", "Rua Oscar Freire, 300", "Transporte de móveis", "5.8 km", 104, 204),
-        Pedido(5, StatusPedido.EM_ANDAMENTO, "2026-04-24 12:15", "Aeroporto de Congonhas", "Hotel Transamerica", "Levar bagagem", "8.5 km", 105, 205),
-        Pedido(6, StatusPedido.FINALIZADO, "2026-04-24 07:30", "Centro Histórico", "Rodoviária", "Envio de pacote urgente", "12.0 km", 106, 206)
-    )
-
-    Scaffold(
-        topBar = {
-            AplicationTopBar(navController = navController, titulo = "Registro de Pedidos", retornavel = false)
-        },
-        bottomBar = {
-            BottomPrestadorBar(navController = navController)
-        },
-        containerColor = Color.White
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(15.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            items(listaDePedidos){ pedido ->
-                PrestadorCardHistoricoPedido(pedido)
-            }
-        }
-    }
-}
+//@RequiresApi(Build.VERSION_CODES.O)
+//@Composable
+//fun PrestadorRegistroDePedidosScreen(navController: NavController) {
+//
+//    val listaDePedidos = listOf(
+//        Pedido(1, StatusPedido.PENDENTE, "2026-04-24 09:00", "Av. Paulista, 1000", "Rua Augusta, 200", "Entrega de documentos", "2.5 km", 101, 201),
+//        Pedido(2, StatusPedido.EM_ANDAMENTO, "2026-04-24 10:30", "Rua da Consolação, 50", "Av. Rebouças, 800", "Compra de supermercado", "4.0 km", 102, 202),
+//        Pedido(3, StatusPedido.FINALIZADO, "2026-04-24 08:00", "Praça da Sé, 10", "Bairro Liberdade, 100", "Entrega de presente", "1.2 km", 103, 203),
+//        Pedido(4, StatusPedido.PENDENTE, "2026-04-24 11:00", "Av. Brigadeiro, 500", "Rua Oscar Freire, 300", "Transporte de móveis", "5.8 km", 104, 204),
+//        Pedido(5, StatusPedido.EM_ANDAMENTO, "2026-04-24 12:15", "Aeroporto de Congonhas", "Hotel Transamerica", "Levar bagagem", "8.5 km", 105, 205),
+//        Pedido(6, StatusPedido.FINALIZADO, "2026-04-24 07:30", "Centro Histórico", "Rodoviária", "Envio de pacote urgente", "12.0 km", 106, 206)
+//    )
+//
+//    Scaffold(
+//        topBar = {
+//            AplicationTopBar(navController = navController, titulo = "Registro de Pedidos", retornavel = false)
+//        },
+//        bottomBar = {
+//            BottomPrestadorBar(navController = navController)
+//        },
+//        containerColor = Color.White
+//    ) { paddingValues ->
+//        LazyColumn(
+//            modifier = Modifier
+//                .padding(paddingValues)
+//                .fillMaxSize(),
+//            verticalArrangement = Arrangement.spacedBy(15.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            items(listaDePedidos){ pedido ->
+//                PrestadorCardHistoricoPedido(pedido)
+//            }
+//        }
+//    }
+//}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

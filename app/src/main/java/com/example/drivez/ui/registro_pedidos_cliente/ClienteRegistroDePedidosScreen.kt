@@ -21,33 +21,33 @@ import com.example.drivez.ClienteCardHistoricoPedido
 import com.example.drivez.ui.components.AplicationTopBar
 import com.example.drivez.ui.components.BottomClienteBar
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun ClienteRegistroDePedidosScreen(
-    navController: NavController,
-    viewModel: ClienteRegistroDePedidosViewModel = viewModel()
-) {
-    val listaDePedidos by viewModel.pedidos.collectAsState()
-
-    Scaffold(
-        topBar = {
-            AplicationTopBar(navController = navController, titulo = "Registro de Pedidos", retornavel = false)
-        },
-        bottomBar = {
-            BottomClienteBar(navController = navController, shadow = false)
-        },
-        containerColor = Color.White
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(15.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            items(listaDePedidos) { pedido ->
-                ClienteCardHistoricoPedido(pedido)
-            }
-        }
-    }
-}
+//@RequiresApi(Build.VERSION_CODES.O)
+//@Composable
+//fun ClienteRegistroDePedidosScreen(
+//    navController: NavController,
+//    viewModel: ClienteRegistroDePedidosViewModel = viewModel()
+//) {
+//    val listaDePedidos by viewModel.pedidos.collectAsState()
+//
+//    Scaffold(
+//        topBar = {
+//            AplicationTopBar(navController = navController, titulo = "Registro de Pedidos", retornavel = false)
+//        },
+//        bottomBar = {
+//            BottomClienteBar(navController = navController, shadow = false)
+//        },
+//        containerColor = Color.White
+//    ) { paddingValues ->
+//        LazyColumn(
+//            modifier = Modifier
+//                .padding(paddingValues)
+//                .fillMaxSize(),
+//            verticalArrangement = Arrangement.spacedBy(15.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            items(listaDePedidos) { pedido ->
+//                ClienteCardHistoricoPedido(pedido)
+//            }
+//        }
+//    }
+//}

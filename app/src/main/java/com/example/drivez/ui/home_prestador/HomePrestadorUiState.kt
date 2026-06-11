@@ -1,11 +1,13 @@
 package com.example.drivez.ui.home_prestador
 
-import com.example.drivez.data.model.Cliente
+import com.example.drivez.data.dto.ClientePedidoDto
 
 data class HomePrestadorUiState(
     val isLoading: Boolean = false,
-    val listaClientes: List<Cliente> = emptyList(),
     val erro: String? = null,
-    val latitudePrestador: Double = -23.5276,
-    val longitudePrestador: Double = -46.9015
+
+    val listaClientes: List<ClientePedidoDto> = emptyList(),
+
+    val latitudePrestador: Double = -23.525622,
+    val longitudePrestador: Double = -46.903273
 )
