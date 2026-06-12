@@ -38,8 +38,6 @@ fun BotaoAceitarArrastavel(
     val botaoTamanhoPx = with(density) { 60.dp.toPx() }
     val decaySpec = rememberSplineBasedDecay<Float>()
 
-    // 1. CORREÇÃO DO CONSTRUTOR: Na API nova, o "animationSpec" e os "thresholds"
-    // são passados de forma diferente ou possuem parâmetros nomeados específicos.
     val state = remember(decaySpec) {
         AnchoredDraggableState(
             initialValue = DragState.START,

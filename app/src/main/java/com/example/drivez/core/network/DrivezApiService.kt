@@ -5,7 +5,9 @@ import com.example.drivez.data.dto.ApiResponseWrapper
 import com.example.drivez.data.dto.ClienteResponseDto
 import com.example.drivez.data.dto.ClienteResponseWrapper
 import com.example.drivez.data.dto.PedidoResponseDto
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.Path
 
 interface DrivezApiService {
@@ -19,4 +21,10 @@ interface DrivezApiService {
     suspend fun obterMediaCliente(
         @Path("idCliente") idCliente: Long
     ): ApiResponseAvaliacao
+
+    @PATCH("pedidos/{id}")
+    suspend fun atualizarStatusPedido(
+        @Path("id") pedidoId: Long,
+        @Body body: Map<String, String>
+    )
 }

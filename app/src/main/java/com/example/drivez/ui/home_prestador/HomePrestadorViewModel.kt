@@ -161,4 +161,21 @@ class HomePrestadorViewModel : ViewModel() {
         super.onCleared()
         pararMonitoramentoEmergencia()
     }
+
+    fun aceitarPedidoEmergencia(pedidoId: Long, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val corpoAtualizacao = mapOf("status" to "EM_ANDAMENTO")
+
+                RetrofitClient.drivezApiService.atualizarStatusPedido(pedidoId, corpoAtualizacao)
+
+                launch(Dispatchers.Main) {
+                    onSuccess()
+                }
+            } catch (e: Exception) {
+                println("DriveZ-Erro-Aceitar: Não foi possível atualizar o status -> ${e.message}")
+                launch(Dispatchers.Main) { onSuccess() }
+            }
+        }
+    }
 }

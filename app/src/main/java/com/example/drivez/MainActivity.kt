@@ -1,6 +1,8 @@
 package com.example.drivez
 
+//import com.example.drivez.ui.registro_pedidos_cliente.ClienteRegistroDePedidosScreen
 import MenuSelecao
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,11 +12,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,46 +27,63 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -74,39 +95,34 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.drivez.core.network.theme.DriveZTheme
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import android.net.Uri
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Divider
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.layout.ContentScale
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import com.example.drivez.core.network.HomePrestadorApiService
-import com.example.drivez.core.network.RetrofitClient
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import com.example.drivez.core.network.theme.AppColors
+import com.example.drivez.core.network.theme.DriveZTheme
+import com.example.drivez.data.model.Categoria
+import com.example.drivez.data.model.CategoriaPedido
+import com.example.drivez.data.model.CategoriaServico
+import com.example.drivez.data.model.Contato
+import com.example.drivez.data.model.Mensagem
+import com.example.drivez.data.model.Pedido
+import com.example.drivez.data.model.Prestador
+import com.example.drivez.data.model.RemetenteMensagem
+import com.example.drivez.data.model.StatusMensagem
+import com.example.drivez.data.model.TipoVeiculo
+import com.example.drivez.data.model.Veiculo
+import com.example.drivez.ui.cadastro.CadastroScreen
+import com.example.drivez.ui.cadastro.CadastroViewModel
 import com.example.drivez.ui.components.AddressTimeline
 import com.example.drivez.ui.components.AplicationTopBar
 import com.example.drivez.ui.components.Avaliacao
@@ -117,40 +133,27 @@ import com.example.drivez.ui.components.BottomClienteBar
 import com.example.drivez.ui.components.BottomPrestadorBar
 import com.example.drivez.ui.components.CampoConfigurarPedido
 import com.example.drivez.ui.components.CampoDigitar
+import com.example.drivez.ui.components.CardAvaliacao
 import com.example.drivez.ui.components.CardCategoria
-import com.example.drivez.ui.components.CardCliente
 import com.example.drivez.ui.components.CardConfirmacao
 import com.example.drivez.ui.components.CardVeiculo
 import com.example.drivez.ui.components.ClienteCardContato
 import com.example.drivez.ui.components.PrestadorCardContato
-import com.example.drivez.ui.components.TituloCampo
-import com.example.drivez.data.model.Categoria
-import com.example.drivez.data.model.CategoriaPedido
-import com.example.drivez.data.model.CategoriaServico
-import com.example.drivez.data.model.Cliente
-import com.example.drivez.data.model.Contato
-import com.example.drivez.data.model.Mensagem
-import com.example.drivez.data.model.Pedido
-import com.example.drivez.data.model.Prestador
-import com.example.drivez.data.model.RemetenteMensagem
-import com.example.drivez.data.model.StatusMensagem
-import com.example.drivez.data.model.StatusPedido
-import com.example.drivez.data.model.TipoVeiculo
-import com.example.drivez.data.model.Veiculo
-import com.example.drivez.core.network.theme.AppColors
-import com.example.drivez.ui.cadastro.CadastroScreen
-import com.example.drivez.ui.cadastro.CadastroViewModel
 import com.example.drivez.ui.home_cliente.HomeClienteScreen
 import com.example.drivez.ui.home_prestador.HomePrestadorScreen
 import com.example.drivez.ui.home_prestador.HomePrestadorViewModel
 import com.example.drivez.ui.login.LoginScreen
-//import com.example.drivez.ui.registro_pedidos_cliente.ClienteRegistroDePedidosScreen
+import com.example.drivez.ui.pedido_prestador.PrestadorServiceStatusScreen
 import com.example.drivez.util.FormatarData
 import com.mapbox.common.MapboxOptions
+import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.MapView
+import com.mapbox.maps.Style
+import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import kotlinx.coroutines.launch
-import coil3.request.ImageRequest
-import coil3.request.crossfade
-import androidx.compose.ui.platform.LocalContext
 
 
 class MainActivity : ComponentActivity() {
@@ -270,31 +273,56 @@ class MainActivity : ComponentActivity() {
                             val clienteId = backStackEntry.arguments?.getString("clienteId") ?: ""
 
                             DetalhesSolicitacaoEmergenciaScreen(
-                                viewModel = prestadorViewModel,
                                 clienteId = clienteId,
                                 navController = navController,
-                                onCorridaAceita = {
-                                    navController.navigate("service_status/prestador/$clienteId/true")
+                                viewModel = prestadorViewModel,
+                                onCorridaAceita = { origemText, destinoText ->
+                                    navController.navigate(
+                                        "home/prestador/service_status/prestador/$clienteId/true/$origemText/$destinoText"
+                                    )
                                 }
                             )
                         }
 
                         composable(
-                            route = "home/prestador/servico_status/{clienteId}/",
-                            arguments = listOf(navArgument("clienteId") { type = NavType.StringType })
-                        ) {
-                            val clienteId = it.arguments?.getString("clienteId")
-                            DetalhesSolicitacaoScreen(navController = navController, clienteId = clienteId!!)
-                        }
-
-                        composable("home/prestador/service_status/prestador/{userId}/{isSOS}") { backStackEntry ->
+                            // 1. A rota recebe as Strings dos endereços na URL
+                            route = "home/prestador/service_status/prestador/{userId}/{isSOS}/{origemTexto}/{destinoTexto}"
+                        ) { backStackEntry ->
                             val userId = backStackEntry.arguments?.getString("userId") ?: ""
                             val isSOS = backStackEntry.arguments?.getString("isSOS")?.toBoolean() ?: true
 
-                            ServiceStatusScreen(
+                            val origemTexto = backStackEntry.arguments?.getString("origemTexto") ?: ""
+                            val destinoTexto = backStackEntry.arguments?.getString("destinoTexto") ?: ""
+
+                            PrestadorServiceStatusScreen(
                                 navController = navController,
                                 userId = userId,
-                                isSOS = isSOS
+                                isSOS = isSOS,
+                                enderecoOrigemTexto = origemTexto,
+                                enderecoDestinoTexto = destinoTexto
+                            )
+                        }
+
+                        composable("home/prestador/avaliacao") {
+                            val dadosPrestadorSimulado = Prestador(
+                                id = 1,
+                                nome = "Eduardo Feitosa",
+                                avaliacao = 4.8,
+                                totalAvaliacoes = 120,
+                                categorias = listOf(
+                                    Categoria(nome = "Guincho"),
+                                    Categoria(nome = "Mecânico")
+                                )
+                            )
+
+                            CardAvaliacao(
+                                navController = navController,
+                                prestador = dadosPrestadorSimulado,
+                                onAvaliacaoEnviada = { nota, comentario ->
+                                    navController.navigate("home/prestador") {
+                                        popUpTo("home/prestador") { inclusive = true }
+                                    }
+                                }
                             )
                         }
 
@@ -441,9 +469,6 @@ val fontFamily = FontFamily(
 @Composable
 fun ServicoScreen(navController: NavController, prestadorId: String) {
 
-    //Buscar o prestador pelo ID dele e exibir aqui!
-
-    //Enquanto nao poder fazer requisicoes na API utilizar esse prestador, depois retirar
     val prestadorTeste = Prestador(id = 1, nome = "RIMBEIRO", avaliacao = 2.0,
         descricao = "Especializada em serviços de guincho e assistência veicular, a Rimberio oferece suporte rápido e seguro para o seu veículo. " +
                 "Com foco na eficiência e no cuidado com o patrimônio do cliente, estamos prontos para atender emergências com profissionalismo e pontualidade."
@@ -1028,80 +1053,100 @@ fun ClienteConversaScreen(navController: NavController, contatoId: String) {
 @Composable
 fun ServiceStatusScreen(navController: NavController, userId: String, isSOS: Boolean) {
 
-    var servicoAceitoState by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     var cardState by remember { mutableStateOf(false) }
-
     var chatState by remember { mutableStateOf(false) }
 
-    var servicoState by remember { mutableStateOf(false) }
+    val coordenadaOrigem = Point.fromLngLat(-46.9011, -23.5276)
+    val coordenadaDestino = Point.fromLngLat(-46.8481, -23.4901)
 
-    val prestadorTeste = Prestador(id = 1, nome = "RIMBEIRO", avaliacao = 2.0, perfilImgUrl = "https://i.pravatar.cc/150?u=1", totalAvaliacoes = 45, categorias = listOf(Categoria(nome = "Guincho"), Categoria(nome = "Mecanico")))
+    val mapView = remember {
+        MapView(context).apply {
+            mapboxMap.loadStyle(Style.MAPBOX_STREETS) { style ->
+                val annotationApi = annotations
+                val pointAnnotationManager = annotationApi.createPointAnnotationManager()
+
+                val originAnnotationOptions = PointAnnotationOptions()
+                    .withPoint(coordenadaOrigem)
+                    .withIconImage("red-pin")
+                pointAnnotationManager.create(originAnnotationOptions)
+
+                val destinationAnnotationOptions = PointAnnotationOptions()
+                    .withPoint(coordenadaDestino)
+                pointAnnotationManager.create(destinationAnnotationOptions)
+
+                mapboxMap.setCamera(
+                    CameraOptions.Builder()
+                        .center(coordenadaOrigem)
+                        .zoom(12.5)
+                        .pitch(0.0)
+                        .bearing(0.0)
+                        .build()
+                )
+            }
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> mapView.onStart()
+                Lifecycle.Event.ON_STOP -> mapView.onStop()
+                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFE0E0E0)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("Google Maps será carregado aqui")
-        }
+
+        AndroidView(
+            factory = { mapView },
+            modifier = Modifier.fillMaxSize()
+        )
 
         IconButton(
-            onClick = {
-                cardState = true
-            },
+            onClick = { cardState = true },
             modifier = Modifier
-                .padding(16.dp)
+                .padding(top = 24.dp, start = 16.dp)
                 .align(Alignment.TopStart)
                 .background(Color.White, CircleShape)
+                .size(45.dp)
         ) {
             Icon(
                 painter = painterResource(R.drawable.baseline_arrow_back_24),
                 contentDescription = "Voltar",
-                tint = AppColors.DarkBlue
+                tint = AppColors.DarkBlue,
+                modifier = Modifier.size(28.dp)
             )
         }
 
-        //Quando o servicoState se tornar true significa que o servico foi concluido e com isso a aplicacao deve
-        //exibir a o card de avaliacao do prestador (Pensar na ideia do WebSocket ou na notificacao)
-
         CardBuscandoPrestador(
-            cancelarOnClick = {cardState = true},
+            cancelarOnClick = { cardState = true },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 16.dp)
                 .navigationBarsPadding(),
             isSOS = isSOS
         )
+    }
 
-//        CardServicoStatus(
-//            modifier = Modifier
-//                .align(Alignment.BottomCenter)
-//                .padding(16.dp)
-//                .navigationBarsPadding(),
-//            prestador = prestadorTeste,
-//            cancelarOnClick = {
-//                cardState = true
-//            },
-//            chatRapidoClick = {
-//                chatState = true
-//            }
-//        )
-//        CardAvaliacao(
-//            navController = navController,
-//            prestador = prestadorTeste
-//        )
-    }
-    if(cardState){
-        CardConfirmacao(pergunta = "Cancelar Solicitação?", onBackClick = { cardState = false  },
+    if (cardState) {
+        CardConfirmacao(
+            pergunta = "Cancelar Solicitação?",
+            onBackClick = { cardState = false },
             onConfirmClick = {
-                navController.navigate(route = "home/cliente")
-            })
-    }
-    if(chatState){
-        ChatRapidoScreen(backOnClick = {chatState = false})
+                navController.navigate(route = "home/cliente") {
+                    popUpTo("home/cliente") { inclusive = true }
+                }
+            }
+        )
     }
 }
 
@@ -1495,114 +1540,116 @@ fun ChatRapidoScreen(backOnClick: () -> Unit) {
 
 }
 
-@Composable
-fun CardAvaliacao(navController: NavController, prestador: Prestador, modifier: Modifier = Modifier) {
-    var rating by remember { mutableIntStateOf(0) }
-    var comentario by remember { mutableStateOf("") }
+//@Composable
+//fun CardAvaliacao(navController: NavController, prestador: Prestador, modifier: Modifier = Modifier) {
+//    var rating by remember { mutableIntStateOf(0) }
+//    var comentario by remember { mutableStateOf("") }
+//
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .navigationBarsPadding()
+//    ) {
+////        Image(
+////            painter = painterResource(id = R.drawable.map_placeholder),
+////            contentDescription = null,
+////            modifier = Modifier.fillMaxSize(),
+////            contentScale = ContentScale.Crop
+////        )
+//
+//        Column(
+//            modifier = Modifier
+//                .align(Alignment.BottomCenter)
+//                .fillMaxWidth()
+//                .fillMaxHeight(0.85f) // Ocupa a maior parte da tela
+//                .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+//                .background(Color.White)
+//                .padding(24.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Text(
+//                text = "A solicitação foi finalizada,\navalie o seu serviço!",
+//                textAlign = TextAlign.Center,
+//                fontWeight = FontWeight.Bold,
+//                fontFamily = fontFamily,
+//                modifier = Modifier.padding(bottom = 24.dp)
+//            )
+//
+//            Surface(
+//                modifier = Modifier.size(80.dp),
+//                shape = CircleShape,
+//                border = BorderStroke(1.dp, AppColors.DarkBlue)
+//            ) {
+//                AsyncImage(
+//                    model = "${prestador.perfilImgUrl}",
+//                    placeholder = painterResource(R.drawable.baseline_person_24),
+//                    error = painterResource(R.drawable.baseline_person_24),
+//                    contentDescription = null,
+//                )
+//            }
+//
+//            Spacer(modifier = Modifier.height(24.dp))
+//
+//            Row(
+//                horizontalArrangement = Arrangement.spacedBy(8.dp),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                repeat(5) { index ->
+//                    val isSelected = index < rating
+//                    Icon(
+//                        painter = painterResource(R.drawable.baseline_star_24),
+//                        contentDescription = null,
+//                        modifier = Modifier
+//                            .size(40.dp)
+//                            .clickable { rating = index + 1 },
+//                        tint = if (isSelected) Color(0xFFFFC107) else Color.LightGray
+//                    )
+//                }
+//            }
+//
+//            Spacer(modifier = Modifier.height(32.dp))
+//
+//            Text(
+//                text = "Fazer comentário (Opcional)",
+//                modifier = Modifier.fillMaxWidth(),
+//                fontWeight = FontWeight.Bold,
+//                fontFamily = fontFamily,
+//                color = Color.DarkGray
+//            )
+//
+//            Spacer(modifier = Modifier.height(8.dp))
+//
+//            OutlinedTextField(
+//                value = comentario,
+//                onValueChange = { comentario = it },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(150.dp),
+//                shape = RoundedCornerShape(16.dp),
+//                colors = TextFieldDefaults.colors(
+//                    unfocusedContainerColor = Color.Transparent,
+//                    focusedContainerColor = Color.Transparent,
+//                    unfocusedIndicatorColor = Color(0xFFE57373),
+//                )
+//            )
+//
+//            Spacer(modifier = Modifier.weight(1f))
+//
+//            Button(
+//                onClick = {},
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(56.dp),
+//                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336)),
+//                shape = RoundedCornerShape(28.dp)
+//            ) {
+//                Text(text = "Enviar", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+//            }
+//        }
+//    }
+//}
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding()
-    ) {
-//        Image(
-//            painter = painterResource(id = R.drawable.map_placeholder),
-//            contentDescription = null,
-//            modifier = Modifier.fillMaxSize(),
-//            contentScale = ContentScale.Crop
-//        )
 
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f) // Ocupa a maior parte da tela
-                .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                .background(Color.White)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "A solicitação foi finalizada,\navalie o seu serviço!",
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold,
-                fontFamily = fontFamily,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
-
-            Surface(
-                modifier = Modifier.size(80.dp),
-                shape = CircleShape,
-                border = BorderStroke(1.dp, AppColors.DarkBlue)
-            ) {
-                AsyncImage(
-                    model = "${prestador.perfilImgUrl}",
-                    placeholder = painterResource(R.drawable.baseline_person_24),
-                    error = painterResource(R.drawable.baseline_person_24),
-                    contentDescription = null,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                repeat(5) { index ->
-                    val isSelected = index < rating
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_star_24),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clickable { rating = index + 1 },
-                        tint = if (isSelected) Color(0xFFFFC107) else Color.LightGray
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "Fazer comentário (Opcional)",
-                modifier = Modifier.fillMaxWidth(),
-                fontWeight = FontWeight.Bold,
-                fontFamily = fontFamily,
-                color = Color.DarkGray
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = comentario,
-                onValueChange = { comentario = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color(0xFFE57373),
-                )
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = {},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336)),
-                shape = RoundedCornerShape(28.dp)
-            ) {
-                Text(text = "Enviar", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
 
 @Composable
 fun ConfigurarPedidoScreen(navController: NavController, isSOS: Boolean) {
@@ -1685,7 +1732,6 @@ fun ConfigurarPedidoScreen(navController: NavController, isSOS: Boolean) {
                             if(isSOS){
                                 mostrarCategorias = true
                             }else{
-                                //Depois pensar em como passar o id do prestador quando ser um SOS
                                 navController.navigate(route = "home/cliente/servico_status/1/${isSOS}")
                             }
                         }
@@ -1759,7 +1805,7 @@ fun CardBuscandoPrestador(cancelarOnClick: () -> Unit, modifier: Modifier = Modi
     var resetKey by remember { mutableStateOf(0) }
 
     LaunchedEffect(resetKey) {
-        progresso.snapTo(0f) // Garante que comece do zero imediatamente ao resetar
+        progresso.snapTo(0f)
         progresso.animateTo(
             targetValue = 1f,
             animationSpec = infiniteRepeatable(
@@ -1833,7 +1879,7 @@ fun CardBuscandoPrestador(cancelarOnClick: () -> Unit, modifier: Modifier = Modi
                     shape = RoundedCornerShape(15.dp)
                 ) {
                     Text(
-                        text = "Confirmar",
+                        text = "Cancelar",
                         color = Color.White,
                         fontFamily = fontFamily,
                         fontWeight = FontWeight.Bold,
@@ -2898,10 +2944,9 @@ fun PrestadorPerfilScreen(navController: NavController) {
 fun DetalhesSolicitacaoEmergenciaScreen(
     clienteId: String,
     navController: NavController,
-    onCorridaAceita: () -> Unit,
-    viewModel: HomePrestadorViewModel // <-- AJUSTE AQUI: Recebendo a ViewModel compartilhada do NavHost
+    onCorridaAceita: (origemTexto: String, destinoTexto: String) -> Unit,
+    viewModel: HomePrestadorViewModel
 ) {
-    // Vincula os dados dinâmicos da Azure ao estado da tela
     val dadosEmergencia = viewModel.emergenciaState
     val context = LocalContext.current
 
@@ -2917,7 +2962,7 @@ fun DetalhesSolicitacaoEmergenciaScreen(
                             Icon(
                                 painter = painterResource(R.drawable.baseline_arrow_back_24),
                                 contentDescription = "Voltar",
-                                tint = Color(0xFF1A237E), // Substitua pela cor do seu AppColors.DarkBlue
+                                tint = Color(0xFF1A237E),
                                 modifier = Modifier.size(50.dp)
                             )
                         }
@@ -2929,25 +2974,18 @@ fun DetalhesSolicitacaoEmergenciaScreen(
                                 .fillMaxWidth()
                                 .align(Alignment.Center)
                         ) {
-                            Text(
-                                text = "🚨",
-                                fontSize = 22.sp
-                            )
-
+                            Text(text = "🚨", fontSize = 22.sp)
                             Spacer(modifier = Modifier.width(8.dp))
-
                             Text(
                                 text = "Emergência",
-                                color = Color(0xFFD32F2F), // Cor do seu AppColors.PrimaryRed
+                                color = Color(0xFFD32F2F),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 24.sp
                             )
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
         bottomBar = {
@@ -2966,10 +3004,7 @@ fun DetalhesSolicitacaoEmergenciaScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Bloco de Identificação do Cliente (Foto, Nota e Nome vindos do Backend)
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
                         .size(150.dp)
@@ -2992,11 +3027,8 @@ fun DetalhesSolicitacaoEmergenciaScreen(
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
-
                 Avaliacao(dadosEmergencia.notaCliente, 25.dp, 3.dp)
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 Text(
                     text = dadosEmergencia.nomeCliente,
                     fontSize = 28.sp,
@@ -3005,70 +3037,36 @@ fun DetalhesSolicitacaoEmergenciaScreen(
                 )
             }
 
-            // Informações da Corrida vindas dinamicamente da Azure
             Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = "Origem:",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A237E)
-                    )
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+                    Text(text = "Origem:", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A237E))
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = dadosEmergencia.origem,
-                        fontSize = 15.sp,
-                        color = Color.Black
-                    )
+                    Text(text = dadosEmergencia.origem, fontSize = 15.sp, color = Color.Black)
                 }
 
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = "Destino:",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A237E)
-                    )
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+                    Text(text = "Destino:", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A237E))
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = dadosEmergencia.destino,
-                        fontSize = 15.sp,
-                        color = Color.Black,
-                        lineHeight = 20.sp
-                    )
+                    Text(text = dadosEmergencia.destino, fontSize = 15.sp, color = Color.Black, lineHeight = 20.sp)
                 }
 
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = "Descrição:",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A237E)
-                    )
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+                    Text(text = "Descrição:", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A237E))
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = dadosEmergencia.descricao,
-                        fontSize = 15.sp,
-                        color = Color.Black,
-                        lineHeight = 20.sp
-                    )
+                    Text(text = dadosEmergencia.descricao, fontSize = 15.sp, color = Color.Black, lineHeight = 20.sp)
                 }
             }
 
-            // Botão Arrastável que dispara a aceitação da corrida
             BotaoAceitarArrastavel(
                 modifier = Modifier.padding(bottom = 32.dp),
                 onAccept = {
-                    onCorridaAceita()
+                    val idPedido = dadosEmergencia.idPedido
+                    viewModel.aceitarPedidoEmergencia(
+                        pedidoId = idPedido,
+                        onSuccess = {
+                            onCorridaAceita(dadosEmergencia.origem, dadosEmergencia.destino)
+                        }
+                    )
                 }
             )
         }
