@@ -140,6 +140,7 @@ import com.example.drivez.ui.components.CardVeiculo
 import com.example.drivez.ui.components.ClienteCardContato
 import com.example.drivez.ui.components.PrestadorCardContato
 import com.example.drivez.ui.home_cliente.HomeClienteScreen
+import com.example.drivez.ui.home_prestador.EnvConfig
 import com.example.drivez.ui.home_prestador.HomePrestadorScreen
 import com.example.drivez.ui.home_prestador.HomePrestadorViewModel
 import com.example.drivez.ui.login.LoginScreen
@@ -161,7 +162,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        MapboxOptions.accessToken = BuildConfig.MAPBOX_TOKEN
+        MapboxOptions.accessToken = EnvConfig.MAPBOX_ACCESS_TOKEN
         setContent {
             DriveZTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -3061,8 +3062,10 @@ fun DetalhesSolicitacaoEmergenciaScreen(
                 modifier = Modifier.padding(bottom = 32.dp),
                 onAccept = {
                     val idPedido = dadosEmergencia.idPedido
+                    val idPrestadorLogado = 123
                     viewModel.aceitarPedidoEmergencia(
                         pedidoId = idPedido,
+                        idPrestadorLogado = idPrestadorLogado,
                         onSuccess = {
                             onCorridaAceita(dadosEmergencia.origem, dadosEmergencia.destino)
                         }

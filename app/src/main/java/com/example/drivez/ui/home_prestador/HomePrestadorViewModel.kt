@@ -14,6 +14,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 data class HomePrestadorState(
     val listaClientes: List<ClientePedidoDto> = emptyList(),
@@ -162,19 +163,40 @@ class HomePrestadorViewModel : ViewModel() {
         pararMonitoramentoEmergencia()
     }
 
-    fun aceitarPedidoEmergencia(pedidoId: Long, onSuccess: () -> Unit) {
-        viewModelScope.launch {
+    fun aceitarPedidoEmergencia(pedidoId: Long, idPrestadorLogado: Int, onSuccess: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val corpoAtualizacao = mapOf("status" to "EM_ANDAMENTO")
-
                 RetrofitClient.drivezApiService.atualizarStatusPedido(pedidoId, corpoAtualizacao)
 
-                launch(Dispatchers.Main) {
+                try {
+                    val urlCompleta = EnvConfig.SUPABASE_URL.replace("https://", "").replace(".supabase.co", "")
+                    val apiKey = EnvConfig.SUPABASE_KEY
+
+                    val dadosParaOVue = mapOf(
+                        "status" to "aceito",
+                        "id_prestador" to idPrestadorLogado.toString()
+                    )
+
+                    RetrofitClient.drivezApiService.atualizarSupabaseRealtime(
+                        apiKey = apiKey,
+                        bearerToken = "Bearer $apiKey",
+                        supabaseId = urlCompleta,
+                        queryId = "eq.$pedidoId",
+                        corpo = dadosParaOVue
+                    )
+                    println("DriveZ-SOS: Tabela 'solicitacoes' atualizada com sucesso!")
+                } catch (supabaseError: Exception) {
+                    println("DriveZ-SOS-Erro: Falha ao falar com o Supabase: ${supabaseError.message}")
+                }
+
+                withContext(Dispatchers.Main) {
                     onSuccess()
                 }
+
             } catch (e: Exception) {
-                println("DriveZ-Erro-Aceitar: Não foi possível atualizar o status -> ${e.message}")
-                launch(Dispatchers.Main) { onSuccess() }
+                println("DriveZ-Erro-Aceitar: Falha na Azure -> ${e.message}")
+                withContext(Dispatchers.Main) { onSuccess() }
             }
         }
     }

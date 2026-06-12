@@ -24,10 +24,9 @@ android {
         if (localPropertiesFile.exists()) {
             properties.load(localPropertiesFile.inputStream())
         }
+
         val mapboxPublicToken = properties.getProperty("MAPBOX_ACCESS_TOKEN") ?: ""
-
         buildConfigField("String", "MAPBOX_TOKEN", "\"$mapboxPublicToken\"")
-
         manifestPlaceholders["MAPBOX_ACCESS_TOKEN"] = mapboxPublicToken
     }
 

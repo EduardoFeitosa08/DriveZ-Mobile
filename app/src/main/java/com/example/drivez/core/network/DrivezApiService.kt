@@ -7,6 +7,7 @@ import com.example.drivez.data.dto.ClienteResponseWrapper
 import com.example.drivez.data.dto.PedidoResponseDto
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.Path
 
@@ -27,4 +28,15 @@ interface DrivezApiService {
         @Path("id") pedidoId: Long,
         @Body body: Map<String, String>
     )
+
+    @PATCH("https://{supabase_id}.supabase.co/rest/v1/solicitacoes")
+    suspend fun atualizarSupabaseRealtime(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") bearerToken: String,
+        @Header("Content-Type") contentType: String = "application/json",
+        @Header("Prefer") prefer: String = "return=minimal",
+        @Path("supabase_id", encoded = true) supabaseId: String,
+        @retrofit2.http.Query("id") queryId: String,
+        @Body corpo: Map<String, String>
+    ): retrofit2.Response<Unit>
 }

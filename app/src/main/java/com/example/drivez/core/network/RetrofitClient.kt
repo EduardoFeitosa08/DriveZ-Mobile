@@ -47,7 +47,6 @@ object RetrofitClient {
         retrofit.create(DrivezApiService::class.java)
     }
 
-//    // CORREÇÃO AQUI (Se houver uma interface específica para o histórico):
 //    val historicoPedidoApiService: HistoricoPedidoApiService by lazy {
 //        retrofit.create(HistoricoPedidoApiService::class.java)
 //    }
