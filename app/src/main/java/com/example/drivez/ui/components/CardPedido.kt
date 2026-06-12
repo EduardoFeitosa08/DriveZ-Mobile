@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,23 +22,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil3.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.request.crossfade
 import com.example.drivez.R
 import com.example.drivez.core.network.theme.AppColors
 import com.example.drivez.data.dto.ClientePedidoDto
-
-import coil.compose.AsyncImage // <-- Importe o Coil aqui
 
 @Composable
 fun CardPedido(
     pedidoDto: ClientePedidoDto,
     navController: NavController
 ) {
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -65,7 +68,10 @@ fun CardPedido(
                     modifier = Modifier.size(60.dp)
                 ) {
                     AsyncImage(
-                        model = pedidoDto.fotoUrl,
+                        model = ImageRequest.Builder(context)
+                            .data(pedidoDto.fotoUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = "Foto de ${pedidoDto.nomeCliente}",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
@@ -76,7 +82,7 @@ fun CardPedido(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                val notaApi = 3.4
+                val notaApi = if (pedidoDto.mediaNota > 0.0) pedidoDto.mediaNota else 5.0
 
                 Avaliacao(
                     avaliacaoOriginal = notaApi,

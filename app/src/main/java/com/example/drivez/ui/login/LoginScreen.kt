@@ -141,15 +141,16 @@ fun LoginScreen(
 
     LaunchedEffect(state) {
         if (state is LoginUiState.Sucesso) {
-
             val cadastroIgnoradoParaTestes = true
 
             if (cadastroIgnoradoParaTestes) {
-                if (state.tipoUsuario == "Prestador") {
+                val tipoUsuarioNormalizado = state.tipoUsuario.lowercase()
+
+                if (tipoUsuarioNormalizado == "prestador") {
                     navController.navigate("home/prestador") {
                         popUpTo("login") { inclusive = true }
                     }
-                } else {
+                } else if (tipoUsuarioNormalizado == "cliente") {
                     navController.navigate("home/cliente") {
                         popUpTo("login") { inclusive = true }
                     }

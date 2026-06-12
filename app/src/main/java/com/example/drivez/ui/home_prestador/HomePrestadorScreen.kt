@@ -1,7 +1,5 @@
 package com.example.drivez.ui.home_prestador
 
-import android.graphics.BitmapFactory
-import com.example.drivez.ui.components.BottomPrestadorBar
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -12,35 +10,64 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.drivez.R
+import com.example.drivez.ui.components.BottomPrestadorBar
+import com.example.drivez.ui.components.CardPedido
+import com.example.drivez.util.obterCoordenadasDoEndereco
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
 import com.mapbox.maps.Style
 import com.mapbox.maps.plugin.annotation.annotations
-import com.example.drivez.util.obterCoordenadasDoEndereco
 import com.mapbox.maps.plugin.annotation.generated.CircleAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.CircleAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createCircleAnnotationManager
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun HomePrestadorScreen(
     navController: NavController,
-    viewModel: HomePrestadorViewModel
+    viewModel: HomePrestadorViewModel = viewModel(),
 ) {
     val state = viewModel.uiState
     var isListVisible by remember { mutableStateOf(false) }
@@ -53,8 +80,12 @@ fun HomePrestadorScreen(
 
     var annotationManager by remember { mutableStateOf<CircleAnnotationManager?>(null) }
 
+    val latitudeJandira = -23.5255
+    val longitudeJandira = -46.9015
+
     LaunchedEffect(Unit) {
         viewModel.carregarPedidosEClientes()
+        viewModel.iniciarMonitoramentoEmergencia(navController)
     }
 
     LaunchedEffect(resetKey) {
@@ -72,7 +103,9 @@ fun HomePrestadorScreen(
         annotationManager?.let { manager ->
             manager.deleteAll()
 
-            val pontoPrestador = Point.fromLngLat(state.longitudePrestador, state.latitudePrestador)
+            val latPrestador = if (state.latitudePrestador != 0.0) state.latitudePrestador else latitudeJandira
+            val lngPrestador = if (state.longitudePrestador != 0.0) state.longitudePrestador else longitudeJandira
+            val pontoPrestador = Point.fromLngLat(lngPrestador, latPrestador)
 
             manager.create(
                 CircleAnnotationOptions()
@@ -112,8 +145,8 @@ fun HomePrestadorScreen(
                     manager.create(auraPedido)
                     manager.create(centroPedido)
                 } else {
-                    val latSimulada = state.latitudePrestador + (kotlin.random.Random.nextDouble(-0.008, 0.008))
-                    val lngSimulada = state.longitudePrestador + (kotlin.random.Random.nextDouble(-0.008, 0.008))
+                    val latSimulada = latPrestador + (kotlin.random.Random.nextDouble(-0.004, 0.004))
+                    val lngSimulada = lngPrestador + (kotlin.random.Random.nextDouble(-0.004, 0.004))
                     val pontoReserva = Point.fromLngLat(lngSimulada, latSimulada)
 
                     val centroPedido = CircleAnnotationOptions()
@@ -136,10 +169,14 @@ fun HomePrestadorScreen(
             modifier = Modifier.fillMaxSize(),
             update = { mv ->
                 mv.mapboxMap.loadStyle(Style.STANDARD)
+
+                val latCâmera = if (state.latitudePrestador != 0.0) state.latitudePrestador else latitudeJandira
+                val lngCâmera = if (state.longitudePrestador != 0.0) state.longitudePrestador else longitudeJandira
+
                 mv.mapboxMap.setCamera(
                     CameraOptions.Builder()
-                        .center(Point.fromLngLat(state.longitudePrestador, state.latitudePrestador))
-                        .zoom(14.0)
+                        .center(Point.fromLngLat(lngCâmera, latCâmera))
+                        .zoom(15.5)
                         .build()
                 )
 
@@ -257,7 +294,7 @@ fun HomePrestadorScreen(
                             }
                             else -> {
                                 PainelPedidos(
-                                    lista = state.listaClientes,
+                                    uiState = state,
                                     navController = navController
                                 )
                             }
@@ -273,6 +310,83 @@ fun HomePrestadorScreen(
     DisposableEffect(mapView) {
         onDispose {
             mapView.onDestroy()
+        }
+    }
+}
+
+@Composable
+fun PainelPedidos(
+    uiState: HomePrestadorState,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = "Solicitações Disponíveis",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF1A237E), // Seu DarkBlue padrão
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        when {
+            uiState.isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF1A237E))
+                }
+            }
+            uiState.erro != null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = uiState.erro,
+                        color = Color.Red,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+            uiState.listaClientes.isEmpty() -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Nenhuma solicitação por perto no momento.",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    items(uiState.listaClientes) { pedido ->
+                        CardPedido(
+                            pedidoDto = pedido,
+                            navController = navController
+                        )
+                    }
+                }
+            }
         }
     }
 }

@@ -15,3 +15,19 @@ data class ClienteApiResponse(
     @SerializedName("status_code") val statusCode: Int,
     @SerializedName("response") val clientes: List<Cliente>
 )
+
+data class ClienteResponseDto(
+    @SerializedName("id_cliente")
+    val idCliente: Int?,
+
+    @SerializedName("nome")
+    val nome: String?,
+
+    @SerializedName("img_perfil")
+    val imgPerfil: String?
+)
+
+data class ClienteResponseWrapper(
+    @SerializedName("response")
+    val response: ClienteResponseDto?
+)

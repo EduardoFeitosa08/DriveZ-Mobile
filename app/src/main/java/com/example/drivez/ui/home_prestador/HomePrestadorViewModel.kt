@@ -1,123 +1,164 @@
 package com.example.drivez.ui.home_prestador
 
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.drivez.core.network.HomePrestadorApiService
 import com.example.drivez.core.network.RetrofitClient
 import com.example.drivez.data.dto.ClientePedidoDto
-import com.example.drivez.ui.components.CardPedido
-import kotlinx.coroutines.launch
-import android.util.Log
-import retrofit2.HttpException
-import com.example.drivez.network.DrivezApiService
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 
-// Estrutura do Estado da UI que você já utiliza
 data class HomePrestadorState(
+    val listaClientes: List<ClientePedidoDto> = emptyList(),
     val isLoading: Boolean = false,
     val erro: String? = null,
-    val listaClientes: List<ClientePedidoDto> = emptyList(),
-    val latitudePrestador: Double = -23.5325, // Coordenadas padrão (ex: Jandira/Osasco)
-    val longitudePrestador: Double = -46.7916
+    val latitudePrestador: Double = 0.0,
+    val longitudePrestador: Double = 0.0
 )
 
-class HomePrestadorViewModel(
-    private val apiService: DrivezApiService // Seu serviço do Retrofit injetado
-) : ViewModel() {
+data class EmergenciaUiState(
+    val idPedido: Long = 0L,
+    val nomeCliente: String = "",
+    val fotoCliente: String = "",
+    val origem: String = "",
+    val destino: String = "",
+    val descricao: String = "",
+    val notaCliente: Double = 5.0,
+    val isLoading: Boolean = false
+)
 
-    // Estado observável pela HomePrestadorScreen
+class HomePrestadorViewModel : ViewModel() {
+
     var uiState by mutableStateOf(HomePrestadorState())
         private set
 
+    var emergenciaState by mutableStateOf(EmergenciaUiState())
+        private set
+
+    private var pollingJob: Job? = null
+
     fun carregarPedidosEClientes() {
         viewModelScope.launch {
-            // Ativa o loading na tela e limpa erros antigos
-            uiState = uiState.copy(isLoading = true, erro = null)
-
             try {
-                // 1. Puxa a lista de pedidos pendentes da Azure
-                // (Substitua pelo nome real do método que você usa para listar os pedidos)
-                val pedidosResponse = apiService.obterPedidosPendentes()
+                uiState = uiState.copy(isLoading = true, erro = null)
 
-                if (pedidosResponse.isEmpty()) {
+                // Busca a resposta envelopada da Azure
+                val pedidosWrapper = RetrofitClient.drivezApiService.obterPedidosPendentes()
+                val listaPedidosPura = pedidosWrapper.response
+
+                if (listaPedidosPura.isEmpty()) {
                     uiState = uiState.copy(listaClientes = emptyList(), isLoading = false)
                     return@launch
                 }
 
-                // 2. Mapeia a lista de pedidos buscando as informações complementares em paralelo
-                val listaMapeadaComNotas = pedidosResponse.map { pedido ->
+                delay(600)
+
+                val listaMapeadaComNotas = listaPedidosPura.map { pedido ->
                     async {
-                        // Busca o perfil do cliente dono do pedido (sua lógica atual)
-                        val clienteDono = try {
-                            apiService.obterClientePorId(pedido.clienteId)
+                        val idClienteLong = pedido.id_cliente?.toLong() ?: 0L
+
+                        val wrapperCliente = try {
+                            RetrofitClient.drivezApiService.obterClientePorId(idClienteLong)
                         } catch (e: Exception) {
                             null
                         }
+                        val clienteDono = wrapperCliente?.response
 
-                        // NOVA REQUISIÇÃO: Busca a média de avaliação do cliente na rota da Azure
                         val notaCliente = try {
-                            val avaliacaoResponse = apiService.obterMediaCliente(pedido.clienteId)
-                            // Converte a String "3.4" da API para Double. Se falhar ou for nulo, joga 0.0
-                            avaliacaoResponse.dados.mediaNota.toDoubleOrNull() ?: 0.0
+                            val avaliacaoResponse = RetrofitClient.drivezApiService.obterMediaCliente(idClienteLong)
+                            avaliacaoResponse.dados.mediaNota.toDoubleOrNull() ?: 5.0
                         } catch (e: Exception) {
-                            // Se a API de notas falhar ou o cliente não tiver notas, definimos como 0.0
-                            // O componente de estrelas interceptará o 0.0 e desenhará 5 estrelas
-                            0.0
+                            5.0
                         }
 
-                        // Monta o DTO final que a tela espera receber, agora incluindo a nota real
                         ClientePedidoDto(
-                            pedidoId = pedido.id,
-                            descricaoItem = pedido.descricao,
-                            valorCombustivel = 35.0, // Valor mockado ou vindo do pedido
+                            pedidoId = pedido.id_pedido?.toLong() ?: 0L,
+                            descricaoItem = pedido.descricao ?: "Sem descrição",
+                            valorCombustivel = 35.0,
                             statusPedido = "PENDENTE",
                             enderecoOrigem = pedido.endereco_origem ?: "Endereço não informado",
-                            clienteId = pedido.clienteId,
-                            nomeCliente = clienteDono?.nome ?: "Cliente DriveZ ${pedido.clienteId}",
+                            clienteId = idClienteLong,
+                            nomeCliente = if (!clienteDono?.nome.isNullOrBlank()) clienteDono!!.nome else "Cliente #$idClienteLong",
                             fotoUrl = clienteDono?.imgPerfil,
-                            mediaNota = notaCliente // <-- Injeta a nota final aqui
+                            mediaNota = notaCliente
                         )
                     }
-                }.awaitAll() // Aguarda todas as requisições assíncronas terminarem juntas
+                }.awaitAll()
 
-                // Atualiza o estado da tela com a lista final preenchida
                 uiState = uiState.copy(
                     listaClientes = listaMapeadaComNotas,
                     isLoading = false
                 )
 
             } catch (e: Exception) {
-                // Trata falhas gerais de rede ou servidor
                 uiState = uiState.copy(
-                    erro = "Erro ao carregar solicitações: ${e.localizedMessage ?: e.message}",
+                    erro = "Erro ao carregar solicitações: ${e.message}",
                     isLoading = false
                 )
             }
         }
     }
-}
 
-@Composable
-fun PainelPedidos(
-    lista: List<ClientePedidoDto>,
-    navController: NavController
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        items(lista) { item ->
-            CardPedido(pedidoDto = item, navController = navController)
+    fun iniciarMonitoramentoEmergencia(navController: NavController) {
+        // Impede que mais de um loop seja criado ao mesmo tempo
+        if (pollingJob?.isActive == true) return
+
+        pollingJob = viewModelScope.launch {
+            while (true) {
+                try {
+                    val pedidosWrapper = RetrofitClient.drivezApiService.obterPedidosPendentes()
+                    val lista = pedidosWrapper.response
+
+                    val pedidoGuinchoEmergencia = lista.firstOrNull { pedido ->
+                        pedido.descricao?.contains("guincho", ignoreCase = true) == true
+                    }
+
+                    if (pedidoGuinchoEmergencia != null) {
+                        val idCliente = pedidoGuinchoEmergencia.id_cliente?.toLong() ?: 0L
+
+                        val wrapperCliente = try {
+                            RetrofitClient.drivezApiService.obterClientePorId(idCliente)
+                        } catch (e: Exception) { null }
+                        val cliente = wrapperCliente?.response
+
+                        emergenciaState = EmergenciaUiState(
+                            idPedido = pedidoGuinchoEmergencia.id_pedido?.toLong() ?: 0L,
+                            nomeCliente = cliente?.nome ?: "Cliente DriveZ #$idCliente",
+                            fotoCliente = cliente?.imgPerfil ?: "",
+                            origem = pedidoGuinchoEmergencia.endereco_origem ?: "Não informada",
+                            destino = pedidoGuinchoEmergencia.endereco_destino ?: "Não informado",
+                            descricao = pedidoGuinchoEmergencia.descricao ?: "Emergência de Guincho",
+                            notaCliente = 4.8
+                        )
+
+                        pararMonitoramentoEmergencia()
+
+                        navController.navigate("home/prestador/detalhes_solicitacao/emergencia/$idCliente")
+
+                        break
+                    }
+                } catch (e: Exception) {
+                    println("DriveZ-SOS-Polling: Buscando atualizações na Azure...")
+                }
+
+                delay(5000)
+            }
         }
+    }
+
+    fun pararMonitoramentoEmergencia() {
+        pollingJob?.cancel()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        pararMonitoramentoEmergencia()
     }
 }

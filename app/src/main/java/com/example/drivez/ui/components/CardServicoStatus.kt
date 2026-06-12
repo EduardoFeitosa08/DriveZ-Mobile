@@ -52,7 +52,7 @@ fun CardServicoStatus(modifier: Modifier = Modifier, prestador: Prestador,
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Avaliacao(avaliacao = prestador.avaliacao, tamanho = 24.dp, espacamento = 4.dp)
+//            Avaliacao(avaliacao = prestador.avaliacao, tamanho = 24.dp, espacamento = 4.dp)
 
             Spacer(modifier = Modifier.height(16.dp))
 

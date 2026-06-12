@@ -60,7 +60,7 @@ fun CardCliente(cliente: Cliente ,navController: NavController, ) {
                 ) {
                     Icon(painterResource(R.drawable.baseline_person_24), contentDescription = null, tint = Color(0xFF557895), modifier = Modifier.padding(8.dp))
                 }
-                Avaliacao(avaliacao = 3.0, tamanho = 14.dp, espacamento = 2.dp)
+//                Avaliacao(avaliacao = 3.0, tamanho = 14.dp, espacamento = 2.dp)
             }
 
             Spacer(modifier = Modifier.width(16.dp))

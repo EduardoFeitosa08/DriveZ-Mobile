@@ -146,7 +146,11 @@ import com.example.drivez.ui.home_prestador.HomePrestadorViewModel
 import com.example.drivez.ui.login.LoginScreen
 //import com.example.drivez.ui.registro_pedidos_cliente.ClienteRegistroDePedidosScreen
 import com.example.drivez.util.FormatarData
+import com.mapbox.common.MapboxOptions
 import kotlinx.coroutines.launch
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import androidx.compose.ui.platform.LocalContext
 
 
 class MainActivity : ComponentActivity() {
@@ -154,11 +158,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        MapboxOptions.accessToken = BuildConfig.MAPBOX_TOKEN
         setContent {
             DriveZTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
                     val navController = rememberNavController()
+                    val prestadorViewModel: HomePrestadorViewModel = viewModel()
                     NavHost(
                         navController = navController,
                         startDestination = "login"
@@ -247,17 +253,10 @@ class MainActivity : ComponentActivity() {
                         //Prestador
 
                         composable("home/prestador") {
-                            val apiService = RetrofitClient.homePrestadorApiService
-
-                            val factory = object : ViewModelProvider.Factory {
-                                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                    return HomePrestadorViewModel(apiService) as T
-                                }
-                            }
-
-                            val viewModel: HomePrestadorViewModel = viewModel(factory = factory)
-
-                            HomePrestadorScreen(navController = navController, viewModel = viewModel)
+                            HomePrestadorScreen(
+                                navController = navController,
+                                viewModel = prestadorViewModel
+                            )
                         }
 
                         composable(
@@ -267,13 +266,17 @@ class MainActivity : ComponentActivity() {
                             val clienteId = it.arguments?.getString("clienteId")
                             DetalhesSolicitacaoScreen(navController = navController, clienteId = clienteId!!)
                         }
-                        composable(
-                            route = "home/prestador/detalhes_solicitacao/emergencia/{clienteId}",
-                            arguments = listOf(navArgument("clienteId") { type = NavType.StringType })
-                        ) {
-                            val clienteId = it.arguments?.getString("clienteId")
-                            DetalhesSolicitacaoEmergenciaScreen(navController = navController, clienteId = clienteId!!,
-                                onCorridaAceita = {})
+                        composable("home/prestador/detalhes_solicitacao/emergencia/{clienteId}") { backStackEntry ->
+                            val clienteId = backStackEntry.arguments?.getString("clienteId") ?: ""
+
+                            DetalhesSolicitacaoEmergenciaScreen(
+                                viewModel = prestadorViewModel,
+                                clienteId = clienteId,
+                                navController = navController,
+                                onCorridaAceita = {
+                                    navController.navigate("service_status/prestador/$clienteId/true")
+                                }
+                            )
                         }
 
                         composable(
@@ -284,16 +287,15 @@ class MainActivity : ComponentActivity() {
                             DetalhesSolicitacaoScreen(navController = navController, clienteId = clienteId!!)
                         }
 
-                        composable(
-                            route = "home/prestador/servico_status/{clienteId}/{isSOS}",
-                            arguments = listOf(
-                                navArgument("clienteId") { type = NavType.StringType },
-                                navArgument("isSOS"){type = NavType.BoolType; defaultValue = false}
+                        composable("home/prestador/service_status/prestador/{userId}/{isSOS}") { backStackEntry ->
+                            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                            val isSOS = backStackEntry.arguments?.getString("isSOS")?.toBoolean() ?: true
+
+                            ServiceStatusScreen(
+                                navController = navController,
+                                userId = userId,
+                                isSOS = isSOS
                             )
-                        ) {
-                            val clienteId = it.arguments?.getString("clienteId")
-                            val isSOS = it.arguments?.getBoolean("isSOS")
-                            ServiceStatusScreen(navController = navController, userId = clienteId!!, isSOS!!)
                         }
 
                         composable("home/prestador/contatos") {
@@ -2893,20 +2895,29 @@ fun PrestadorPerfilScreen(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetalhesSolicitacaoEmergenciaScreen(onCorridaAceita: () -> Unit, clienteId: String, navController: NavController) {
+fun DetalhesSolicitacaoEmergenciaScreen(
+    clienteId: String,
+    navController: NavController,
+    onCorridaAceita: () -> Unit,
+    viewModel: HomePrestadorViewModel // <-- AJUSTE AQUI: Recebendo a ViewModel compartilhada do NavHost
+) {
+    // Vincula os dados dinâmicos da Azure ao estado da tela
+    val dadosEmergencia = viewModel.emergenciaState
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Box() {
+                    Box(modifier = Modifier.fillMaxWidth()) {
                         IconButton(
-                            onClick = {navController.popBackStack()},
+                            onClick = { navController.popBackStack() },
                             modifier = Modifier.align(Alignment.TopStart)
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.baseline_arrow_back_24),
                                 contentDescription = "Voltar",
-                                tint = AppColors.DarkBlue,
+                                tint = Color(0xFF1A237E), // Substitua pela cor do seu AppColors.DarkBlue
                                 modifier = Modifier.size(50.dp)
                             )
                         }
@@ -2914,7 +2925,8 @@ fun DetalhesSolicitacaoEmergenciaScreen(onCorridaAceita: () -> Unit, clienteId: 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
                                 .align(Alignment.Center)
                         ) {
                             Text(
@@ -2926,10 +2938,9 @@ fun DetalhesSolicitacaoEmergenciaScreen(onCorridaAceita: () -> Unit, clienteId: 
 
                             Text(
                                 text = "Emergência",
-                                color = AppColors.PrimaryRed,
+                                color = Color(0xFFD32F2F), // Cor do seu AppColors.PrimaryRed
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 24.sp,
-                                fontFamily = fontFamily
+                                fontSize = 24.sp
                             )
                         }
                     }
@@ -2955,6 +2966,7 @@ fun DetalhesSolicitacaoEmergenciaScreen(onCorridaAceita: () -> Unit, clienteId: 
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Bloco de Identificação do Cliente (Foto, Nota e Nome vindos do Backend)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -2964,33 +2976,37 @@ fun DetalhesSolicitacaoEmergenciaScreen(onCorridaAceita: () -> Unit, clienteId: 
                         .border(2.dp, Color(0xFF6D6D6D), CircleShape)
                         .padding(4.dp)
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.baseline_person_24),
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(dadosEmergencia.fotoCliente)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = "Foto do Cliente",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip(CircleShape)
+                            .clip(CircleShape),
+                        error = painterResource(R.drawable.baseline_person_24),
+                        placeholder = painterResource(R.drawable.baseline_person_24)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Avaliacao(3.0, 25.dp, 3.dp)
+                Avaliacao(dadosEmergencia.notaCliente, 25.dp, 3.dp)
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Rogerio",
+                    text = dadosEmergencia.nomeCliente,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
             }
 
-//            Spacer(modifier = Modifier.height(32.dp))
-
-            Column() {
+            // Informações da Corrida vindas dinamicamente da Azure
+            Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.Start
@@ -2999,17 +3015,15 @@ fun DetalhesSolicitacaoEmergenciaScreen(onCorridaAceita: () -> Unit, clienteId: 
                         text = "Origem:",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.DarkBlue
+                        color = Color(0xFF1A237E)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Rodovia dos Bandeirantes, KM 152",
+                        text = dadosEmergencia.origem,
                         fontSize = 15.sp,
                         color = Color.Black
                     )
                 }
-
-//            Spacer(modifier = Modifier.height(24.dp))
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -3019,18 +3033,16 @@ fun DetalhesSolicitacaoEmergenciaScreen(onCorridaAceita: () -> Unit, clienteId: 
                         text = "Destino:",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.DarkBlue
+                        color = Color(0xFF1A237E)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Centro Automotivo Porto, Rua das Flores, 500.",
+                        text = dadosEmergencia.destino,
                         fontSize = 15.sp,
                         color = Color.Black,
                         lineHeight = 20.sp
                     )
                 }
-
-//            Spacer(modifier = Modifier.height(24.dp))
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -3040,11 +3052,11 @@ fun DetalhesSolicitacaoEmergenciaScreen(onCorridaAceita: () -> Unit, clienteId: 
                         text = "Descrição:",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.DarkBlue
+                        color = Color(0xFF1A237E)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Range Rover Evoque, Perda Total",
+                        text = dadosEmergencia.descricao,
                         fontSize = 15.sp,
                         color = Color.Black,
                         lineHeight = 20.sp
@@ -3052,8 +3064,7 @@ fun DetalhesSolicitacaoEmergenciaScreen(onCorridaAceita: () -> Unit, clienteId: 
                 }
             }
 
-//            Spacer(modifier = Modifier.height(40.dp))
-
+            // Botão Arrastável que dispara a aceitação da corrida
             BotaoAceitarArrastavel(
                 modifier = Modifier.padding(bottom = 32.dp),
                 onAccept = {
