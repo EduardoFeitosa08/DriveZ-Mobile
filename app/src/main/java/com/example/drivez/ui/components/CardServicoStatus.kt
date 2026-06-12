@@ -67,14 +67,10 @@ fun CardServicoStatus(
                 shape = CircleShape,
                 border = BorderStroke(1.dp, AppColors.DarkBlue)
             ) {
-                val imageUrl = if (isCliente) {
-                    "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/clientes/foto/$id"
-                } else {
-                    id // Caso seja prestador, 'id' pode ser a URL direta ou tratada em outro lugar
-                }
-
+                // A lógica agora aceita 'id' como sendo a URL já tratada vinda do ViewModel
+                // Se for um ID numérico puro, o Coil tentará carregar e falhará, caindo no fallback
                 AsyncImage(
-                    model = imageUrl,
+                    model = id,
                     placeholder = painterResource(R.drawable.baseline_person_24),
                     error = painterResource(R.drawable.baseline_person_24),
                     contentDescription = "Foto de Perfil",

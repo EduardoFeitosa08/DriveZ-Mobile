@@ -175,7 +175,7 @@ fun ClienteCardHistoricoPedido(pedido: Pedido, modifier: Modifier = Modifier) {
                 )
                 Spacer(modifier = Modifier.width(15.dp))
                 Text(
-                    text = "Prestador: Carlos Oliveira",
+                    text = "Prestador: ${pedido.prestadorNome ?: "Não atribuído"}",
                     fontFamily = fontFamily,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,

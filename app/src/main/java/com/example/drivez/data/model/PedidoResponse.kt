@@ -28,5 +28,11 @@ data class PedidoResponse(
     val enderecoDestino: String? = null,
 
     @SerializedName("status")
-    val status: String? = null
+    val status: String? = null,
+
+    @SerializedName("nome_prestador")
+    val prestadorNome: String? = null,
+
+    @SerializedName("nome_cliente")
+    val clienteNome: String? = null
 )

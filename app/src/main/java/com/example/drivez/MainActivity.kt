@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -52,12 +53,18 @@ import com.example.drivez.ui.service_status.ServiceStatusScreen
 import com.example.drivez.ui.servico.ServicoScreen
 
 
+import androidx.compose.ui.platform.LocalContext
+import com.example.drivez.core.session.SessionManager
+
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val context = LocalContext.current
+            val sessionManager = remember { SessionManager(context) }
+
             DriveZTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val navController = rememberNavController()
@@ -101,7 +108,7 @@ class MainActivity : ComponentActivity() {
                                 val factory = object : ViewModelProvider.Factory {
                                     override fun <T : ViewModel> create(modelClass: Class<T>): T {
                                         @Suppress("UNCHECKED_CAST")
-                                        return ClienteRegistroDePedidosViewModel(apiService) as T
+                                        return ClienteRegistroDePedidosViewModel(apiService, sessionManager) as T
                                     }
                                 }
                                 val viewModel: ClienteRegistroDePedidosViewModel = viewModel(factory = factory)
@@ -159,7 +166,7 @@ class MainActivity : ComponentActivity() {
                                 val factory = object : ViewModelProvider.Factory {
                                     override fun <T : ViewModel> create(modelClass: Class<T>): T {
                                         @Suppress("UNCHECKED_CAST")
-                                        return HomePrestadorViewModel(apiService) as T
+                                        return HomePrestadorViewModel(apiService, sessionManager) as T
                                     }
                                 }
 
@@ -254,10 +261,11 @@ class MainActivity : ComponentActivity() {
 
                             composable("home/prestador/historico") {
                                 val apiService = RetrofitClient.homePrestadorApiService
+                                val pedidoApiService = RetrofitClient.historicoPedidoApiService
                                 val factory = object : ViewModelProvider.Factory {
                                     override fun <T : ViewModel> create(modelClass: Class<T>): T {
                                         @Suppress("UNCHECKED_CAST")
-                                        return PrestadorRegistroDePedidosViewModel(apiService) as T
+                                        return PrestadorRegistroDePedidosViewModel(apiService, pedidoApiService, sessionManager) as T
                                     }
                                 }
                                 val viewModel: PrestadorRegistroDePedidosViewModel = viewModel(factory = factory)

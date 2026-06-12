@@ -21,13 +21,22 @@ import com.example.drivez.ui.components.ClienteCardHistoricoPedido
 import com.example.drivez.ui.components.AplicationTopBar
 import com.example.drivez.ui.components.BottomClienteBar
 
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Box
+import com.example.drivez.ui.components.ClienteCardHistoricoPedido
+import com.example.drivez.ui.components.AplicationTopBar
+import com.example.drivez.ui.components.BottomClienteBar
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ClienteRegistroDePedidosScreen(
     navController: NavController,
-    viewModel: ClienteRegistroDePedidosViewModel = viewModel()
+    viewModel: ClienteRegistroDePedidosViewModel
 ) {
     val listaDePedidos by viewModel.pedidos.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
 
     Scaffold(
         topBar = {
@@ -38,15 +47,23 @@ fun ClienteRegistroDePedidosScreen(
         },
         containerColor = Color.White
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(15.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            items(listaDePedidos) { pedido ->
-                ClienteCardHistoricoPedido(pedido)
+        Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color.Red)
+            } else if (error != null) {
+                Text(text = error!!, color = Color.Red, modifier = Modifier.align(Alignment.Center))
+            } else if (listaDePedidos.isEmpty()) {
+                Text(text = "Nenhum pedido encontrado.", modifier = Modifier.align(Alignment.Center))
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(15.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    items(listaDePedidos) { pedido ->
+                        ClienteCardHistoricoPedido(pedido)
+                    }
+                }
             }
         }
     }

@@ -22,12 +22,26 @@ class DetalhesSolicitacaoViewModel(
             try {
                 val response = apiService.getDetalhesCliente(clienteId)
                 if (response.isSuccessful && response.body() != null) {
+                    val apiRes = response.body()!!
+                    val dados = apiRes.response
+                    
+                    val img = dados.imgPerfil
+                    val fotoUrl = if (!img.isNullOrBlank()) {
+                        if (img.startsWith("http")) img else "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/cliente/foto/${clienteId}"
+                    } else {
+                        "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/cliente/foto/${clienteId}"
+                    }
+                    
                     uiState = uiState.copy(
-                        cliente = response.body(),
+                        cliente = dados.copy(imgPerfil = fotoUrl),
                         isLoading = false
                     )
                 } else {
-                    uiState = uiState.copy(isLoading = false, erro = "Erro ao buscar detalhes do cliente")
+                    // Fallback para erro 404 ou outros
+                    uiState = uiState.copy(
+                        cliente = ClienteDetalhesResponse(id = clienteId, nome = "Cliente", imgPerfil = "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/cliente/foto/${clienteId}", telefone = null, email = null),
+                        isLoading = false
+                    )
                 }
             } catch (e: Exception) {
                 uiState = uiState.copy(isLoading = false, erro = "Falha de rede: ${e.localizedMessage}")

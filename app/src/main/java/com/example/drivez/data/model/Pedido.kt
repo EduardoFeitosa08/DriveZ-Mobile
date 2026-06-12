@@ -11,5 +11,6 @@ data class Pedido(
     val prestadorId: Int,
     val clienteId: Int,
     val clienteNome: String? = null,
+    val prestadorNome: String? = null,
     val clienteImgUrl: String? = null
 )

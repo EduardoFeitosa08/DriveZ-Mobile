@@ -6,13 +6,15 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.drivez.core.network.HomePrestadorApiService
+import com.example.drivez.core.session.SessionManager
 import com.example.drivez.data.model.Cliente
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 
 class HomePrestadorViewModel(
-    private val apiService: HomePrestadorApiService
+    private val apiService: HomePrestadorApiService,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     var uiState by mutableStateOf(HomePrestadorUiState())
@@ -36,23 +38,51 @@ class HomePrestadorViewModel(
                             try {
                                 val clienteResponse = apiService.getDetalhesCliente(pedido.clienteId)
                                 if (clienteResponse.isSuccessful && clienteResponse.body() != null) {
-                                    val dadosCliente = clienteResponse.body()!!
+                                    val apiRes = clienteResponse.body()!!
+                                    val dadosCliente = apiRes.response
+
+                                    val img = dadosCliente.imgPerfil
+                                    val fotoUrl = if (!img.isNullOrBlank()) {
+                                        if (img.startsWith("http")) img else "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/cliente/foto/${pedido.clienteId}"
+                                    } else {
+                                        "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/cliente/foto/${pedido.clienteId}"
+                                    }
 
                                     Cliente(
-                                        id = pedido.id,
-                                        nome = dadosCliente.nome,
-                                        telefone = dadosCliente.telefone,
-                                        email = dadosCliente.email,
-                                        imgPerfil = dadosCliente.imgPerfil,
+                                        id = pedido.clienteId,
+                                        nome = dadosCliente.nome ?: "Cliente DriveZ",
+                                        telefone = dadosCliente.telefone ?: "",
+                                        email = dadosCliente.email ?: "",
+                                        imgPerfil = fotoUrl,
                                         distancia = pedido.distancia?.toDoubleOrNull() ?: 0.0,
                                         cpf = dadosCliente.cpf,
                                         cnpj = dadosCliente.cnpj
                                     )
                                 } else {
-                                    null
+                                    // Fallback se a API de detalhes falhar
+                                    Cliente(
+                                        id = pedido.clienteId,
+                                        nome = "Cliente DriveZ",
+                                        telefone = "",
+                                        email = "",
+                                        imgPerfil = "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/cliente/foto/${pedido.clienteId}",
+                                        distancia = pedido.distancia?.toDoubleOrNull() ?: 0.0,
+                                        cpf = null,
+                                        cnpj = null
+                                    )
                                 }
                             } catch (e: Exception) {
-                                null
+                                // Fallback em caso de erro de rede
+                                Cliente(
+                                    id = pedido.clienteId,
+                                    nome = "Cliente DriveZ",
+                                    telefone = "",
+                                    email = "",
+                                    imgPerfil = "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/cliente/foto/${pedido.clienteId}",
+                                    distancia = pedido.distancia?.toDoubleOrNull() ?: 0.0,
+                                    cpf = null,
+                                    cnpj = null
+                                )
                             }
                         }
                     }.awaitAll().filterNotNull()

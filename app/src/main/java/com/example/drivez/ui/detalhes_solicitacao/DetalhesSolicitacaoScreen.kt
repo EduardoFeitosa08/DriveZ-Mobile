@@ -75,7 +75,7 @@ fun DetalhesSolicitacaoScreen(
                 color = Color.White
             ) {
                 AsyncImage(
-                    model = "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/clientes/foto/$clienteId",
+                    model = state.cliente?.imgPerfil,
                     placeholder = painterResource(id = R.drawable.baseline_person_24),
                     error = painterResource(id = R.drawable.baseline_person_24),
                     contentDescription = "Foto do Cliente",
@@ -238,7 +238,7 @@ fun DetalhesSolicitacaoEmergenciaScreen(
                         .padding(4.dp)
                 ) {
                     AsyncImage(
-                        model = "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/clientes/foto/$clienteId",
+                        model = state.cliente?.imgPerfil,
                         placeholder = painterResource(R.drawable.baseline_person_24),
                         error = painterResource(R.drawable.baseline_person_24),
                         contentDescription = "Foto do Cliente",

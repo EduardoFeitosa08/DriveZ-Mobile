@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import android.util.Log
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.example.drivez.R
@@ -62,7 +63,7 @@ fun PrestadorCardHistoricoPedido(pedido: Pedido, modifier: Modifier = Modifier) 
             // Data do pedido no topo à direita
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = FormatarData(pedido.dataSolicitacao),
@@ -143,7 +144,7 @@ fun PrestadorCardHistoricoPedido(pedido: Pedido, modifier: Modifier = Modifier) 
                     border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.DarkBlue)
                 ) {
                     AsyncImage(
-                        model = "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/clientes/foto/${pedido.clienteId}",
+                        model = pedido.clienteImgUrl,
                         placeholder = painterResource(R.drawable.baseline_person_24),
                         error = painterResource(R.drawable.baseline_person_24),
                         contentDescription = "Foto do Cliente",
@@ -156,7 +157,7 @@ fun PrestadorCardHistoricoPedido(pedido: Pedido, modifier: Modifier = Modifier) 
 
                 Column {
                     Text(
-                        text = pedido.clienteNome ?: "Cliente DriveZ",
+                        text = pedido.clienteNome ?: "Cliente",
                         fontFamily = fontFamily,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,

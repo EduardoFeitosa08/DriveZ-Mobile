@@ -28,18 +28,8 @@ object RetrofitClient {
             .build()
     }
 
-    val authApiService: AuthApiService by lazy {
-        retrofit.create(AuthApiService::class.java)
-    }
-    val homeApiService: HomeApiService by lazy{
-        retrofit.create(HomeApiService::class.java)
-    }
-    val homePrestadorApiService: HomePrestadorApiService by lazy {
-        retrofit.create(HomePrestadorApiService::class.java)
-    }
-    // Agora vai usar a interface correta que está na mesma pasta (network)
-    val historicoPedidoApiService: PedidoApiService by lazy {
-        retrofit.create(PedidoApiService::class.java)
-    }
+    val authApiService: AuthApiService by lazy { retrofit.create(AuthApiService::class.java) }
+    val homeApiService: HomeApiService by lazy { retrofit.create(HomeApiService::class.java) }
+    val homePrestadorApiService: HomePrestadorApiService by lazy { retrofit.create(HomePrestadorApiService::class.java) }
+    val historicoPedidoApiService: PedidoApiService by lazy { retrofit.create(PedidoApiService::class.java) }
 }
-

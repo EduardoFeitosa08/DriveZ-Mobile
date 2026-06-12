@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -60,11 +61,12 @@ fun CardCliente(cliente: Cliente ,navController: NavController, ) {
                     modifier = Modifier.size(60.dp)
                 ) {
                     AsyncImage(
-                        model = "https://backend-drivez-atgfavb2cuccgrah.eastus2-01.azurewebsites.net/v1/drivez/clientes/foto/${cliente.id}",
+                        model = cliente.imgPerfil,
                         placeholder = painterResource(R.drawable.baseline_person_24),
                         error = painterResource(R.drawable.baseline_person_24),
                         contentDescription = "Foto do Cliente",
-                        modifier = Modifier.padding(2.dp)
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
                 Avaliacao(avaliacao = 3.0, tamanho = 14.dp, espacamento = 2.dp)

@@ -13,10 +13,10 @@ interface HomePrestadorApiService {
     @GET("pedidos")
     suspend fun getTodosOsPedidos(): Response<ApiResponse<List<PedidoResponse>>>
 
-    @GET("clientes/{id}")
+    @GET("cliente/{id}")
     suspend fun getDetalhesCliente(
         @Path("id") clienteId: Int
-    ): Response<ClienteDetalhesResponse>
+    ): Response<ApiResponse<ClienteDetalhesResponse>>
 
     @POST("pedidos/aceitar/{idPedido}/{idPrestador}")
     suspend fun aceitarPedido(
