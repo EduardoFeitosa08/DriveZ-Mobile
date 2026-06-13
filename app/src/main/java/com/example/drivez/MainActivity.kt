@@ -3061,13 +3061,22 @@ fun DetalhesSolicitacaoEmergenciaScreen(
             BotaoAceitarArrastavel(
                 modifier = Modifier.padding(bottom = 32.dp),
                 onAccept = {
-                    val idPedido = dadosEmergencia.idPedido
-                    val idPrestadorLogado = 123
+                    val idPedidoBruto = dadosEmergencia.idPedido
+                    val idPedidoSeguro = if (idPedidoBruto != null && idPedidoBruto > 0) idPedidoBruto else 999L
+
+                    val idPrestadorLogado = 11
+
                     viewModel.aceitarPedidoEmergencia(
-                        pedidoId = idPedido,
+                        pedidoId = idPedidoSeguro,
                         idPrestadorLogado = idPrestadorLogado,
                         onSuccess = {
-                            onCorridaAceita(dadosEmergencia.origem, dadosEmergencia.destino)
+                            val cId = if (!clienteId.isNullOrBlank()) clienteId else "1"
+                            val origem = if (!dadosEmergencia.origem.isNullOrBlank()) dadosEmergencia.origem else "Origem_Nao_Informada"
+                            val destino = if (!dadosEmergencia.destino.isNullOrBlank()) dadosEmergencia.destino else "Destino_Nao_Informada"
+
+                            navController.navigate(
+                                "home/prestador/service_status/prestador/$cId/true/$origem/$destino"
+                            )
                         }
                     )
                 }
