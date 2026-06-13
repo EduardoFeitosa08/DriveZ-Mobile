@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.example.drivez.R
+import com.example.drivez.core.network.theme.AppColors
 import com.example.drivez.data.model.Mensagem
 import com.example.drivez.data.model.RemetenteMensagem
 import com.example.drivez.data.model.StatusMensagem
@@ -49,6 +50,10 @@ fun BalaoChat(mensagem: Mensagem, souOPrestador: Boolean) {
     }
 
     val alinhamento = if (eMinhaMensagem) Alignment.CenterEnd else Alignment.CenterStart
+
+    // Definição dinâmica das cores dos textos e ícones com base em quem enviou
+    val corDoTextoPrincipal = if (eMinhaMensagem) Color.White else Color.Black
+    val corDoTextoHorario = if (eMinhaMensagem) Color.White.copy(alpha = 0.7f) else Color.Gray
 
     Box(
         modifier = Modifier
@@ -66,7 +71,7 @@ fun BalaoChat(mensagem: Mensagem, souOPrestador: Boolean) {
                 bottomStart = if (eMinhaMensagem) 15.dp else 0.dp,
                 bottomEnd = if (eMinhaMensagem) 0.dp else 15.dp
             ),
-            color = Color.White
+            color = if (eMinhaMensagem) AppColors.PrimaryRed else Color.White
         ) {
             Column {
                 if (mensagem.texto != null) {
@@ -75,7 +80,7 @@ fun BalaoChat(mensagem: Mensagem, souOPrestador: Boolean) {
                         fontFamily = fontFamily,
                         fontSize = 16.sp,
                         modifier = Modifier.padding(top = 15.dp, start = 12.dp, end = 12.dp, bottom = 4.dp),
-                        color = Color.Black
+                        color = corDoTextoPrincipal // 🔥 Agora muda de cor dinamicamente
                     )
                 }
 
@@ -103,19 +108,23 @@ fun BalaoChat(mensagem: Mensagem, souOPrestador: Boolean) {
                         text = mensagem.horario,
                         fontFamily = fontFamily,
                         fontSize = 12.sp,
-                        color = Color.Gray,
+                        color = corDoTextoHorario, // 🔥 Corrigido o contraste do horário
                         fontWeight = FontWeight.Bold
                     )
                     Icon(
                         painter = when (mensagem.status) {
-                            StatusMensagem.LIDA -> painterResource(R.drawable.baseline_home_24)
-                            StatusMensagem.ENVIADA -> painterResource(R.drawable.baseline_person_24)
-                            StatusMensagem.ENTREGUE -> painterResource(R.drawable.garage)
+                            StatusMensagem.LIDA -> painterResource(R.drawable.outline_done_all_24)
+                            StatusMensagem.ENVIADA -> painterResource(R.drawable.baseline_done_24)
+                            StatusMensagem.ENTREGUE -> painterResource(R.drawable.outline_done_all_24)
                             else -> painterResource(R.drawable.outline_error_24)
                         },
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
-                        tint = if(mensagem.status == StatusMensagem.LIDA) Color.Blue else Color.Gray
+                        tint = if (mensagem.status == StatusMensagem.LIDA) {
+                            if (eMinhaMensagem) Color.Cyan else Color.Blue
+                        } else {
+                            if (eMinhaMensagem) Color.White.copy(alpha = 0.6f) else Color.Gray
+                        }
                     )
                 }
             }

@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -27,6 +28,11 @@ import com.example.drivez.R
 import com.example.drivez.data.model.Contato
 import com.example.drivez.fontFamily
 import com.example.drivez.core.network.theme.AppColors
+import coil3.compose.rememberAsyncImagePainter
+import androidx.compose.foundation.Image
+import androidx.compose.ui.platform.LocalContext
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 
 @Composable
 fun PrestadorCardContato(contato: Contato, navController: NavController) {
@@ -95,15 +101,12 @@ fun ClienteCardContato(contato: Contato, navController: NavController) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(15.dp))
             .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(15.dp))
-            .clickable{
+            .clickable {
+                // 🔥 Agora leva o ID correto (seja o ID do chat ou o ID do cliente)
                 navController.navigate(route = "home/prestador/contatos/conversa/${contato.id}")
             },
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 10.dp
-        ),
-        colors = CardDefaults.cardColors(
-            containerColor = AppColors.CardBackground
-        )
+        elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
+        colors = CardDefaults.cardColors(containerColor = AppColors.CardBackground)
     ) {
         Row(
             modifier = Modifier
@@ -112,27 +115,35 @@ fun ClienteCardContato(contato: Contato, navController: NavController) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            AsyncImage(
-                model = "${contato.perfilImgUrl}",
-                placeholder = painterResource(R.drawable.baseline_person_24),
-                error = painterResource(R.drawable.baseline_person_24),
+
+            val painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(if (!contato.perfilImgUrl.isNullOrBlank() && contato.perfilImgUrl != "null") contato.perfilImgUrl else "https://images.unsplash.com/photo-1534528741775-53994a69daeb")
+                    .crossfade(true)
+                    .build()
+            )
+
+            Image(
+                painter = painter,
                 contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(70.dp)
                     .clip(RoundedCornerShape(100))
-                    .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100)),
+                    .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(100))
             )
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth(1f),
+                modifier = Modifier.weight(1f),
             ) {
                 Text(
                     text = contato.name,
                     fontFamily = fontFamily,
                     fontWeight = FontWeight.SemiBold,
                     color = AppColors.SecondaryRed,
-                    fontSize = 22.sp
+                    fontSize = 22.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = contato.ultimaMensagem,

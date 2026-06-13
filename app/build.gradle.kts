@@ -4,6 +4,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.21"
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -60,12 +61,11 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 }
 
 dependencies {
-    // 1. Definição do BOM do Compose correto para Kotlin 1.9 (2024.04.01)
     implementation(platform("androidx.compose:compose-bom:2024.04.01"))
     implementation(libs.androidx.ui.text)
+    implementation(libs.androidx.compose.foundation)
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.04.01"))
 
-    // 2. Dependências do Catálogo (mantidas as originais)
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -82,7 +82,6 @@ dependencies {
     implementation(libs.androidx.compose.animation.core)
     implementation(libs.runtime)
 
-    // 3. Testes
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -90,19 +89,19 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // 4. Bibliotecas Manuais Corrigidas e Alinhadas para SDK 34/35 + Kotlin 1.9
-    implementation("androidx.compose.ui:ui-text-google-fonts:1.6.7") // Alinhado com o BOM
-    implementation("androidx.navigation:navigation-compose:2.7.7")   // Versão estável para Kotlin 1.9
-
-    // Mantido apenas o Coil 2.x estável (o Coil 3 exige estrutura Kotlin 2.0+)
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.6.7")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("io.coil-kt.coil3:coil-compose:3.0.0")
 
-    implementation("androidx.compose.foundation:foundation:1.6.7")   // Alinhado com o BOM
+    implementation("androidx.compose.foundation:foundation:1.6.7")
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0") // Alinhado com ciclo de vida estável
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
     implementation("com.mapbox.maps:android:11.2.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-firestore-ktx:24.10.3")
 }
