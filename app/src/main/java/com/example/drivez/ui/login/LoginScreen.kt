@@ -43,93 +43,8 @@ import com.example.drivez.ui.components.CampoDigitar
 import com.example.drivez.core.network.theme.AppColors
 import com.example.drivez.ui.components.CadastroCampoDigitar
 import android.util.Log
+import androidx.compose.foundation.layout.imePadding
 
-//@Composable
-//fun LoginScreen(modifier: Modifier = Modifier, navController: NavController) {
-//
-//    Scaffold(
-//        containerColor = Color.White
-//    ) { paddingValues ->
-//        Column(
-//            modifier = modifier
-//                .padding(paddingValues)
-//                .fillMaxSize()
-//                .background(AppColors.BackgroundGray)
-//                .verticalScroll(rememberScrollState())
-//                .padding(bottom = 30.dp),
-//            horizontalAlignment = Alignment.CenterHorizontally,
-//        ) {
-//            Image(
-//                painter = painterResource(R.drawable.logo_login),
-//                contentDescription = "DriveZ Logo",
-//                modifier = Modifier
-//                    .size(450.dp)
-//            )
-//            Spacer(modifier = Modifier.height(15.dp))
-//            Column(
-//                modifier = Modifier
-//                    .padding(horizontal = 45.dp),
-//                verticalArrangement = Arrangement.spacedBy(20.dp),
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) {
-//
-//                //TextField do Email
-//                CampoDigitar(campoNome = "E-mail")
-//
-//                //TextField da Senha
-//                CampoDigitar(campoNome = "Senha")
-//
-//                Button(
-//                    onClick = {
-//
-//                    },
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(60.dp)
-//                        .clip(RoundedCornerShape(15.dp)),
-//                    shape = RoundedCornerShape(15.dp),
-//                    colors = ButtonDefaults.buttonColors(
-//                        containerColor = AppColors.PrimaryRed,
-//                        contentColor = Color.White
-//                    )
-//                ) {
-//                    Text(
-//                        text = "Entrar",
-//                        fontSize = 24.sp,
-//                        fontFamily = fontFamily,
-//                        fontWeight = FontWeight.Bold,
-//                        color = Color.White
-//                    )
-//                }
-//
-//                Text(
-//                    text = "Esqueceu a senha?",
-//                    fontSize = 14.sp,
-//                    fontFamily = fontFamily,
-//                    color = AppColors.DarkBlue,
-//                    modifier = Modifier.fillMaxWidth(),
-//                    textAlign = TextAlign.End
-//                )
-//
-//                Text(
-//                    text = "Ainda não tem conta? Cadastre-se",
-//                    fontSize = 18.sp,
-//                    fontFamily = fontFamily,
-//                    color = AppColors.DarkBlue,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .clickable {
-//                            navController.navigate(route = "cadastro")
-//                        },
-//                    textAlign = TextAlign.Center
-//                )
-//
-//            }
-//        }
-//    }
-//}
-
-// ui/login/LoginScreen.kt
 @Composable
 fun LoginScreen(
     navController: NavController,
@@ -162,18 +77,19 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(25.dp)
-            .verticalScroll(rememberScrollState()),
+            .padding(horizontal = 15.dp, vertical = 20.dp)
+            .verticalScroll(rememberScrollState())
+            .imePadding(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(R.drawable.logo_login),
+            painter = painterResource(R.drawable.logo_principal),
             contentDescription = "DriveZ Logo",
             modifier = Modifier
-                .size(450.dp)
+                .size(width = 400.dp, height = 250.dp)
         )
-        Spacer(modifier = Modifier.height(15.dp))
+        Spacer(modifier = Modifier.height(5.dp))
 
         if (state is LoginUiState.Erro) {
             Text(text = state.mensagem, color = AppColors.ErrorRed, fontWeight = FontWeight.Bold)
@@ -222,6 +138,6 @@ fun LoginScreen(
         TextButton(onClick = { navController.navigate("cadastro") }) {
             Text("Não tem uma conta? Cadastre-se")
         }
-        Spacer(modifier = Modifier.height(50.dp))
+//        Spacer(modifier = Modifier.height(350.dp))
     }
 }

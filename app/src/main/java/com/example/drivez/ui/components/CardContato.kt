@@ -102,7 +102,6 @@ fun ClienteCardContato(contato: Contato, navController: NavController) {
             .clip(RoundedCornerShape(15.dp))
             .border(1.dp, AppColors.DarkBlue, RoundedCornerShape(15.dp))
             .clickable {
-                // 🔥 Agora leva o ID correto (seja o ID do chat ou o ID do cliente)
                 navController.navigate(route = "home/prestador/contatos/conversa/${contato.id}")
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
@@ -116,16 +115,22 @@ fun ClienteCardContato(contato: Contato, navController: NavController) {
             horizontalArrangement = Arrangement.spacedBy(15.dp)
         ) {
 
-            val painter = rememberAsyncImagePainter(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(if (!contato.perfilImgUrl.isNullOrBlank() && contato.perfilImgUrl != "null") contato.perfilImgUrl else "https://images.unsplash.com/photo-1534528741775-53994a69daeb")
-                    .crossfade(true)
-                    .build()
-            )
+            val imagemModelo = if (!contato.perfilImgUrl.isNullOrBlank() &&
+                contato.perfilImgUrl != "null" &&
+                contato.perfilImgUrl.trim().startsWith("http")) {
+                contato.perfilImgUrl.trim()
+            } else {
+                null
+            }
 
-            Image(
-                painter = painter,
-                contentDescription = null,
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imagemModelo)
+                    .crossfade(true)
+                    .build(),
+                placeholder = painterResource(R.drawable.baseline_person_24),
+                error = painterResource(R.drawable.baseline_person_24),
+                contentDescription = "Foto de perfil de ${contato.name}",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(70.dp)
@@ -142,15 +147,6 @@ fun ClienteCardContato(contato: Contato, navController: NavController) {
                     fontWeight = FontWeight.SemiBold,
                     color = AppColors.SecondaryRed,
                     fontSize = 22.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = contato.ultimaMensagem,
-                    fontFamily = fontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    color = AppColors.DarkBlue,
-                    fontSize = 14.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

@@ -91,7 +91,6 @@ dependencies {
 
     implementation("androidx.compose.ui:ui-text-google-fonts:1.6.7")
     implementation("androidx.navigation:navigation-compose:2.7.7")
-    implementation("io.coil-kt.coil3:coil-compose:3.0.0")
 
     implementation("androidx.compose.foundation:foundation:1.6.7")
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
@@ -104,4 +103,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore-ktx:24.10.3")
+
+    implementation("io.coil-kt.coil3:coil-compose:3.2.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.2.0")
 }

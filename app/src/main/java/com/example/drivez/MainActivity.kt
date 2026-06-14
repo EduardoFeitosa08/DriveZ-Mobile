@@ -1037,7 +1037,7 @@ fun ClienteConversaScreen(navController: NavController, contatoId: String) {
                 state = listState
             ) {
                 items(listaDeMensagens){ item ->
-                    BalaoChat(item, false)
+                    BalaoChat(item)
                 }
             }
             BotaoFlutuante(onClick = {
@@ -1535,7 +1535,7 @@ fun ChatRapidoScreen(backOnClick: () -> Unit) {
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
             items(listaDeMensagens) { mensagem ->
-                BalaoChat(mensagem = mensagem, souOPrestador = false)
+                BalaoChat(mensagem = mensagem)
             }
         }
     }

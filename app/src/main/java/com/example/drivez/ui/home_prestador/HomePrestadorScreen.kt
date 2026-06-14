@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -63,6 +64,9 @@ import com.mapbox.maps.plugin.annotation.generated.CircleAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.CircleAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createCircleAnnotationManager
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.background
 
 @Composable
 fun HomePrestadorScreen(
@@ -186,9 +190,23 @@ fun HomePrestadorScreen(
             }
         )
 
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.logo_principal),
+                contentDescription = "Logo DriveZ",
+                modifier = Modifier
+                    .size(width = 300.dp, height = 150.dp)
+                    .padding(top = 5.dp)
+            )
+        }
+
         Column(modifier = Modifier.align(Alignment.BottomCenter)) {
 
-            // Botão Flutuante animado para sumir suavemente quando a lista sobe
             AnimatedVisibility(
                 visible = !isListVisible,
                 enter = fadeIn(animationSpec = tween(200)),
@@ -325,13 +343,6 @@ fun PainelPedidos(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        Text(
-            text = "Solicitações Disponíveis",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF1A237E), // Seu DarkBlue padrão
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
 
         when {
             uiState.isLoading -> {

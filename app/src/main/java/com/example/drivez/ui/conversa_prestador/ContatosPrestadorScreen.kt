@@ -89,6 +89,7 @@ fun ContatosPrestadorScreen(navController: NavController) {
         }
     }
 
+    // 2. Mesclagem inteligente com o Firebase
     LaunchedEffect(clientesDaApi) {
         db.collection("chats")
             .addSnapshotListener { snapshots, error ->
@@ -105,14 +106,14 @@ fun ContatosPrestadorScreen(navController: NavController) {
 
                 val listaFinalMesclada = clientesDaApi.map { clienteApi ->
                     val chatCorrespondente = chatsAtivosNoFirebase.find {
-                        it.name.contains(clienteApi.name, ignoreCase = true) || it.id == clienteApi.id
+                        it.id == clienteApi.id || it.name.contains(clienteApi.name, ignoreCase = true)
                     }
 
                     if (chatCorrespondente != null) {
                         clienteApi.copy(
                             id = chatCorrespondente.id,
                             ultimaMensagem = chatCorrespondente.ultimaMensagem,
-                            perfilImgUrl = chatCorrespondente.perfilImgUrl ?: clienteApi.perfilImgUrl
+                            perfilImgUrl = clienteApi.perfilImgUrl
                         )
                     } else {
                         clienteApi

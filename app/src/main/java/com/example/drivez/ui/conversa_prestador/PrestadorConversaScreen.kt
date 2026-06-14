@@ -40,12 +40,13 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.Date
 
-fun formatarTimestampParaHora(timestamp: Timestamp?): String {
-    if (timestamp == null) return "..."
-    val date = timestamp.toDate()
-    val formato = SimpleDateFormat("HH:mm", Locale.getDefault())
-    return formato.format(date)
+fun formatarTimestampParaHora(firebaseTimestamp: Timestamp?): String {
+    val data = firebaseTimestamp?.toDate() ?: Date()
+
+    val formatador = SimpleDateFormat("HH:mm", Locale.getDefault())
+    return formatador.format(data)
 }
 
 suspend fun buscarDadosClienteNoAzure(contatoId: String): Pair<String, String?>? {
@@ -68,18 +69,17 @@ suspend fun buscarDadosClienteNoAzure(contatoId: String): Pair<String, String?>?
 
                 val jsonObjetoPrincipal = JSONObject(respostaCompleta.toString())
                 if (jsonObjetoPrincipal.has("response")) {
-                    val responseArray = jsonObjetoPrincipal.getJSONArray("response")
-                    if (responseArray.length() > 0) {
-                        val dadosCliente = responseArray.getJSONObject(0)
-                        val nome = dadosCliente.getString("nome")
-                        val foto = if (!dadosCliente.isNull("img_perfil")) dadosCliente.getString("img_perfil") else null
-                        return@withContext Pair(nome, foto)
-                    }
+                    val dadosCliente = jsonObjetoPrincipal.getJSONObject("response")
+
+                    val nome = dadosCliente.getString("nome")
+                    val foto = if (!dadosCliente.isNull("img_perfil")) dadosCliente.getString("img_perfil") else null
+
+                    return@withContext Pair(nome, foto)
                 }
             }
             conexao.disconnect()
         } catch (e: Exception) {
-            println("DriveZ-Azure-Error: ${e.message}")
+            println("DriveZ-Azure-Error: Falha catastrófica no parser: ${e.message}")
         }
         return@withContext null
     }
@@ -98,75 +98,88 @@ fun PrestadorConversaScreen(navController: NavController, contatoId: String) {
     val listState = rememberLazyListState()
 
     LaunchedEffect(contatoId) {
-        db.collection("chats").document(contatoId)
-            .get()
+        println("DriveZ-Rota: A tela de conversa abriu RECEBENDO o contatoId igual a: '$contatoId'")
+    }
+
+    LaunchedEffect(contatoId) {
+        nomeClienteHeader = "Buscando dados..."
+
+        db.collection("chats").document(contatoId).get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    nomeClienteHeader = document.getString("clienteNome") ?: "Cliente"
-                    fotoClienteHeader = document.getString("clienteFotoUrl")
-                } else {
-                    nomeClienteHeader = "Buscando dados..."
+                    val nomeFb = document.getString("clienteNome")
+                    val fotoFb = document.getString("clienteFotoUrl")
+                    if (!nomeFb.isNullOrBlank()) {
+                        nomeClienteHeader = nomeFb
+                        fotoClienteHeader = fotoFb
+                        return@addOnSuccessListener
+                    }
                 }
             }
 
-        // Se após a tentativa do Firebase o nome continuar como padrão ou carregando,
-        // rodamos a nossa função suspensa com segurança dentro do fluxo do LaunchedEffect
-        db.collection("chats").document(contatoId).get().addOnCompleteListener { task ->
-            if (!task.isSuccessful || task.result?.exists() == false) {
-                // Dispara a busca suspend de forma linear e segura
-                androidx.compose.runtime.snapshots.Snapshot.withoutReadObservation {
-                    // Executa dentro do contexto de Coroutine do LaunchedEffect
-                }
-            }
-        }
-
-        // Forma mais limpa para o fluxo do Compose Coroutine:
         val dadosDoAzure = buscarDadosClienteNoAzure(contatoId)
-        if (dadosDoAzure != null && nomeClienteHeader == "Carregando...") {
+        if (dadosDoAzure != null) {
             nomeClienteHeader = dadosDoAzure.first
             fotoClienteHeader = dadosDoAzure.second
-        } else if (nomeClienteHeader == "Carregando...") {
+        } else {
             nomeClienteHeader = "Cliente #$contatoId"
         }
     }
 
-    // LISTENER DE MENSAGENS EM TEMPO REAL
     LaunchedEffect(contatoId) {
         db.collection("chats")
             .document(contatoId)
             .collection("messages")
-            .orderBy("timestamp", Query.Direction.ASCENDING)
+//            .orderBy("timestamp", Query.Direction.ASCENDING) // 🔥 A query de ordenação entra aqui na raiz
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
-                    println("DriveZ-Firebase-Erro: ${error.message}")
+                    println("DriveZ-Erro-Firebase: ${error.message}")
                     return@addSnapshotListener
                 }
+
                 if (snapshots != null) {
-                    listaDeMensagens = snapshots.map { doc ->
-                        val texto = doc.getString("text")
-                        val imgUrl = doc.getString("imgUrl")
-                        val senderStr = doc.getString("sender") ?: "prestador"
+                    println("DriveZ-Debug: O Firebase detectou ${snapshots.size()} documentos totais nesta sala.")
 
-                        val firebaseTimestamp = doc.getTimestamp("timestamp")
-                        val horaFormatada = formatarTimestampParaHora(firebaseTimestamp)
+                    val listaTemporaria = mutableListOf<Mensagem>()
 
-                        val remetente = if (senderStr == "cliente") {
-                            RemetenteMensagem.CLIENTE
-                        } else {
-                            RemetenteMensagem.PRESTADOR
+                    for (doc in snapshots.documents) {
+                        try {
+                            val texto = doc.getString("text") ?: ""
+                            val imgUrl = doc.getString("imgUrl")
+
+                            val senderBruto = doc.get("sender")
+                            println("DriveZ-Debug: Documento ID [${doc.id}] tem o campo sender = '$senderBruto' (Tipo: ${senderBruto?.javaClass?.simpleName})")
+
+                            val senderStr = senderBruto?.toString()?.trim() ?: "prestador"
+
+                            val remetente = if (senderStr.lowercase() == "prestador") {
+                                RemetenteMensagem.PRESTADOR
+                            } else {
+                                RemetenteMensagem.CLIENTE
+                            }
+
+                            val firebaseTimestamp = doc.getTimestamp("timestamp")
+                            val horaFormatada = formatarTimestampParaHora(firebaseTimestamp)
+
+                            listaTemporaria.add(
+                                Mensagem(
+                                    id = doc.id,
+                                    contatoId = contatoId,
+                                    remententeId = senderStr,
+                                    texto = texto,
+                                    imgUrl = imgUrl,
+                                    horario = horaFormatada,
+                                    status = StatusMensagem.LIDA,
+                                    remetenteMensagem = remetente
+                                )
+                            )
+                        } catch (e: Exception) {
+                            println("DriveZ-Debug: Falha ao mapear o documento [${doc.id}]. Erro: ${e.message}")
                         }
-
-                        Mensagem(
-                            id = doc.id,
-                            contatoId = contatoId,
-                            remententeId = if (remetente == RemetenteMensagem.CLIENTE) "cliente" else "prestador",
-                            texto = texto,
-                            imgUrl = imgUrl,
-                            horario = horaFormatada,
-                            status = StatusMensagem.LIDA,
-                            remetenteMensagem = remetente
-                        )
                     }
+
+                    listaDeMensagens = listaTemporaria
+                    println("DriveZ-Debug: Tela atualizada com ${listaDeMensagens.size} mensagens renderizadas.")
                 }
             }
     }
@@ -225,11 +238,12 @@ fun PrestadorConversaScreen(navController: NavController, contatoId: String) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = AppColors.PrimaryRed
+                    containerColor = AppColors.PrimaryRed,
+                    // 🌟 PASSO 3: Garante que a cor que sangra para a barra de status seja exatamente a mesma
+                    scrolledContainerColor = AppColors.PrimaryRed
                 )
             )
-        },
-        bottomBar = {}
+        }
     ) { paddingValues ->
 
         Column(
@@ -238,7 +252,6 @@ fun PrestadorConversaScreen(navController: NavController, contatoId: String) {
                 .padding(paddingValues)
                 .background(Color(0xFFF7F9FC))
         ) {
-
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -247,15 +260,16 @@ fun PrestadorConversaScreen(navController: NavController, contatoId: String) {
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(listaDeMensagens) { mensagem ->
-                    BalaoChat(mensagem = mensagem, souOPrestador = true)
+                items(listaDeMensagens) { msg ->
+                    BalaoChat(mensagem = msg)
                 }
             }
 
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .imePadding(),
+                    .imePadding()
+                    .navigationBarsPadding(),
                 color = Color.White,
                 shadowElevation = 8.dp
             ) {
@@ -303,7 +317,7 @@ fun PrestadorConversaScreen(navController: NavController, contatoId: String) {
                         enabled = textoState.isNotBlank()
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.baseline_person_24),
+                            painter = painterResource(R.drawable.send_icon),
                             contentDescription = "Enviar Mensagem",
                             tint = if (textoState.isNotBlank()) AppColors.PrimaryRed else Color.Gray
                         )
