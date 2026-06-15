@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,7 +52,8 @@ import com.example.drivez.fontFamily
 @Composable
 fun CardAvaliacao(
     navController: NavController,
-    prestador: Prestador,
+    clienteNome: String,
+    clienteFotoUrl: String,
     modifier: Modifier = Modifier,
     onAvaliacaoEnviada: (Int, String) -> Unit
 ) {
@@ -73,14 +75,23 @@ fun CardAvaliacao(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ALTERADO: Texto corrigido para o contexto do Prestador avaliando o Cliente
             Text(
                 text = "O atendimento foi finalizado,\navalie o cliente!",
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 fontFamily = fontFamily,
-                modifier = Modifier.padding(bottom = 24.dp),
+                modifier = Modifier.padding(bottom = 12.dp),
                 fontSize = 18.sp
+            )
+
+            Text(
+                text = clienteNome,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Medium,
+                fontFamily = fontFamily,
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 16.dp),
+                fontSize = 16.sp
             )
 
             Surface(
@@ -88,10 +99,12 @@ fun CardAvaliacao(
                 shape = CircleShape,
                 border = BorderStroke(1.dp, AppColors.DarkBlue)
             ) {
+                val fotoValida = if (clienteFotoUrl != "null" && clienteFotoUrl.startsWith("http")) clienteFotoUrl else null
                 AsyncImage(
-                    model = prestador.perfilImgUrl,
+                    model = fotoValida,
                     contentDescription = "Foto do cliente solicitado",
                     modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
                     placeholder = painterResource(id = R.drawable.baseline_person_24),
                     fallback = painterResource(id = R.drawable.baseline_person_24),
                     error = painterResource(id = R.drawable.baseline_person_24)

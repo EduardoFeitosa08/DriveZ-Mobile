@@ -156,6 +156,7 @@ import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import kotlinx.coroutines.launch
+import com.example.drivez.ui.chat_rapido_prestador.ChatRapidoDescartavelScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -271,6 +272,39 @@ class MainActivity : ComponentActivity() {
                             val clienteId = it.arguments?.getString("clienteId")
                             DetalhesSolicitacaoScreen(navController = navController, clienteId = clienteId!!)
                         }
+//                        composable("home/prestador/detalhes_solicitacao/emergencia/{clienteId}") { backStackEntry ->
+//                            val clienteId = backStackEntry.arguments?.getString("clienteId") ?: ""
+//
+//                            DetalhesSolicitacaoEmergenciaScreen(
+//                                clienteId = clienteId,
+//                                navController = navController,
+//                                viewModel = prestadorViewModel,
+//                                onCorridaAceita = { origemText, destinoText ->
+//                                    navController.navigate(
+//                                        "home/prestador/service_status/prestador/$clienteId/true/$origemText/$destinoText"
+//                                    )
+//                                }
+//                            )
+//                        }
+//
+//                        composable(
+//                            // 1. A rota recebe as Strings dos endereços na URL
+//                            route = "home/prestador/service_status/prestador/{userId}/{isSOS}/{origemTexto}/{destinoTexto}"
+//                        ) { backStackEntry ->
+//                            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+//                            val isSOS = backStackEntry.arguments?.getString("isSOS")?.toBoolean() ?: true
+//
+//                            val origemTexto = backStackEntry.arguments?.getString("origemTexto") ?: ""
+//                            val destinoTexto = backStackEntry.arguments?.getString("destinoTexto") ?: ""
+//
+//                            PrestadorServiceStatusScreen(
+//                                navController = navController,
+//                                userId = userId,
+//                                isSOS = isSOS,
+//                                enderecoOrigemTexto = origemTexto,
+//                                enderecoDestinoTexto = destinoTexto
+//                            )
+//                        }
                         composable("home/prestador/detalhes_solicitacao/emergencia/{clienteId}") { backStackEntry ->
                             val clienteId = backStackEntry.arguments?.getString("clienteId") ?: ""
 
@@ -279,48 +313,58 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 viewModel = prestadorViewModel,
                                 onCorridaAceita = { origemText, destinoText ->
+                                    val dados = prestadorViewModel.emergenciaState
+
+                                    val nomeCodificado = java.net.URLEncoder.encode(dados.nomeCliente, "UTF-8")
+                                    val fotoCodificada = java.net.URLEncoder.encode(if (dados.fotoCliente.isBlank()) "null" else dados.fotoCliente, "UTF-8")
+                                    val origemCodificada = java.net.URLEncoder.encode(origemText, "UTF-8")
+                                    val destinoCodificada = java.net.URLEncoder.encode(destinoText, "UTF-8")
+
                                     navController.navigate(
-                                        "home/prestador/service_status/prestador/$clienteId/true/$origemText/$destinoText"
+                                        "home/prestador/service_status/prestador/$clienteId/true/$origemCodificada/$destinoCodificada/${dados.idPedido}/$nomeCodificado/$fotoCodificada"
                                     )
                                 }
                             )
                         }
 
                         composable(
-                            // 1. A rota recebe as Strings dos endereços na URL
-                            route = "home/prestador/service_status/prestador/{userId}/{isSOS}/{origemTexto}/{destinoTexto}"
+                            route = "home/prestador/service_status/prestador/{userId}/{isSOS}/{origemTexto}/{destinoTexto}/{pedidoId}/{clienteNome}/{clienteFotoUrl}"
                         ) { backStackEntry ->
                             val userId = backStackEntry.arguments?.getString("userId") ?: ""
                             val isSOS = backStackEntry.arguments?.getString("isSOS")?.toBoolean() ?: true
 
-                            val origemTexto = backStackEntry.arguments?.getString("origemTexto") ?: ""
-                            val destinoTexto = backStackEntry.arguments?.getString("destinoTexto") ?: ""
+                            val origemTexto = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("origemTexto") ?: "", "UTF-8")
+                            val destinoTexto = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("destinoTexto") ?: "", "UTF-8")
+
+                            val pedidoId = backStackEntry.arguments?.getString("pedidoId")?.toLongOrNull() ?: 0L
+                            val clienteNome = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("clienteNome") ?: "Cliente", "UTF-8")
+                            val clienteFotoUrl = backStackEntry.arguments?.getString("clienteFotoUrl") ?: "null"
 
                             PrestadorServiceStatusScreen(
                                 navController = navController,
-                                userId = userId,
-                                isSOS = isSOS,
+                                pedidoId = pedidoId,
+                                clienteNome = clienteNome,
+                                clienteFotoUrl = clienteFotoUrl,
                                 enderecoOrigemTexto = origemTexto,
-                                enderecoDestinoTexto = destinoTexto
+                                enderecoDestinoTexto = destinoTexto,
+                                viewModel = prestadorViewModel
                             )
                         }
 
-                        composable("home/prestador/avaliacao") {
-                            val dadosPrestadorSimulado = Prestador(
-                                id = 1,
-                                nome = "Eduardo Feitosa",
-                                avaliacao = 4.8,
-                                totalAvaliacoes = 120,
-                                categorias = listOf(
-                                    Categoria(nome = "Guincho"),
-                                    Categoria(nome = "Mecânico")
-                                )
-                            )
+                        composable(
+                            route = "home/prestador/avaliacao/{pedidoId}/{clienteNome}/{clienteFotoUrl}"
+                        ) { backStackEntry ->
+                            val pedidoId = backStackEntry.arguments?.getString("pedidoId")?.toLongOrNull() ?: 0L
+                            val clienteNome = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("clienteNome") ?: "Cliente", "UTF-8")
+                            val clienteFotoUrl = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("clienteFotoUrl") ?: "null", "UTF-8")
 
                             CardAvaliacao(
                                 navController = navController,
-                                prestador = dadosPrestadorSimulado,
+                                clienteNome = clienteNome,
+                                clienteFotoUrl = clienteFotoUrl,
                                 onAvaliacaoEnviada = { nota, comentario ->
+                                    println("DriveZ-TCC-Simulacao: Cliente avaliado com $nota estrelas. Comentário: '$comentario'")
+
                                     navController.navigate("home/prestador") {
                                         popUpTo("home/prestador") { inclusive = true }
                                     }
@@ -352,9 +396,19 @@ class MainActivity : ComponentActivity() {
                             PrestadorGaragemVirtualScreen(navController = navController, prestadorId = prestadorId!!)
                         }
 
-//                        composable("home/prestador/historico"){
-//                            PrestadorRegistroDePedidosScreen(navController = navController)
-//                        }
+                        composable("chat_descartavel/{clienteId}/{clienteNome}") { backStackEntry ->
+                            val idRecebido = backStackEntry.arguments?.getString("clienteId")?.toLongOrNull() ?: 0L
+                            val nome = backStackEntry.arguments?.getString("clienteNome") ?: "Cliente"
+
+                            val idSalaFicticia = (idRecebido + 100).toString()
+
+                            ChatRapidoDescartavelScreen(
+                                navController = navController,
+                                salaId = idSalaFicticia,
+                                clienteNome = nome
+                            )
+                        }
+
 
                     }
                 }

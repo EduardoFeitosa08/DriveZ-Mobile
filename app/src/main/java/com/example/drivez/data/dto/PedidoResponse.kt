@@ -25,7 +25,10 @@ data class PedidoResponseDto(
     val id_cliente: Int?,
 
     @SerializedName("id_prestador")
-    val id_prestador: Int?
+    val id_prestador: Int?,
+
+    @SerializedName("status")
+    val status: String? = null
 )
 
 data class ApiResponseWrapper(

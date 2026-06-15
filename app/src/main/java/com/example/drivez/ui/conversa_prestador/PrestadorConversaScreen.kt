@@ -130,7 +130,7 @@ fun PrestadorConversaScreen(navController: NavController, contatoId: String) {
         db.collection("chats")
             .document(contatoId)
             .collection("messages")
-//            .orderBy("timestamp", Query.Direction.ASCENDING) // 🔥 A query de ordenação entra aqui na raiz
+            .orderBy("createdAt", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
                     println("DriveZ-Erro-Firebase: ${error.message}")
@@ -148,8 +148,6 @@ fun PrestadorConversaScreen(navController: NavController, contatoId: String) {
                             val imgUrl = doc.getString("imgUrl")
 
                             val senderBruto = doc.get("sender")
-                            println("DriveZ-Debug: Documento ID [${doc.id}] tem o campo sender = '$senderBruto' (Tipo: ${senderBruto?.javaClass?.simpleName})")
-
                             val senderStr = senderBruto?.toString()?.trim() ?: "prestador"
 
                             val remetente = if (senderStr.lowercase() == "prestador") {
@@ -158,7 +156,8 @@ fun PrestadorConversaScreen(navController: NavController, contatoId: String) {
                                 RemetenteMensagem.CLIENTE
                             }
 
-                            val firebaseTimestamp = doc.getTimestamp("timestamp")
+                            // 🌟 ALTERADO: Lendo 'createdAt' em vez de 'timestamp' para extrair a hora formatada
+                            val firebaseTimestamp = doc.getTimestamp("createdAt")
                             val horaFormatada = formatarTimestampParaHora(firebaseTimestamp)
 
                             listaTemporaria.add(
@@ -179,7 +178,6 @@ fun PrestadorConversaScreen(navController: NavController, contatoId: String) {
                     }
 
                     listaDeMensagens = listaTemporaria
-                    println("DriveZ-Debug: Tela atualizada com ${listaDeMensagens.size} mensagens renderizadas.")
                 }
             }
     }
@@ -239,7 +237,6 @@ fun PrestadorConversaScreen(navController: NavController, contatoId: String) {
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = AppColors.PrimaryRed,
-                    // 🌟 PASSO 3: Garante que a cor que sangra para a barra de status seja exatamente a mesma
                     scrolledContainerColor = AppColors.PrimaryRed
                 )
             )
@@ -300,10 +297,11 @@ fun PrestadorConversaScreen(navController: NavController, contatoId: String) {
                         onClick = {
                             val textoEnviar = textoState.trim()
                             if (textoEnviar.isNotBlank()) {
+                                // 🌟 ALTERADO: Mudado de "timestamp" para "createdAt" para casar com a ordenação e com o banco
                                 val novaMensagemFirebase = mapOf(
                                     "text" to textoEnviar,
                                     "sender" to "prestador",
-                                    "timestamp" to FieldValue.serverTimestamp()
+                                    "createdAt" to FieldValue.serverTimestamp()
                                 )
                                 db.collection("chats")
                                     .document(contatoId)

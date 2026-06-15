@@ -14,6 +14,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
+import retrofit2.HttpException
 
 data class HomePrestadorState(
     val listaClientes: List<ClientePedidoDto> = emptyList(),
@@ -25,6 +27,7 @@ data class HomePrestadorState(
 
 data class EmergenciaUiState(
     val idPedido: Long = 0L,
+    val idCliente: Long = 0L,
     val nomeCliente: String = "",
     val fotoCliente: String = "",
     val origem: String = "",
@@ -49,7 +52,6 @@ class HomePrestadorViewModel : ViewModel() {
             try {
                 uiState = uiState.copy(isLoading = true, erro = null)
 
-                // Busca a resposta envelopada da Azure
                 val pedidosWrapper = RetrofitClient.drivezApiService.obterPedidosPendentes()
                 val listaPedidosPura = pedidosWrapper.response
 
@@ -58,7 +60,7 @@ class HomePrestadorViewModel : ViewModel() {
                     return@launch
                 }
 
-                delay(600)
+                delay(300)
 
                 val listaMapeadaComNotas = listaPedidosPura.map { pedido ->
                     async {
@@ -66,23 +68,19 @@ class HomePrestadorViewModel : ViewModel() {
 
                         val wrapperCliente = try {
                             RetrofitClient.drivezApiService.obterClientePorId(idClienteLong)
-                        } catch (e: Exception) {
-                            null
-                        }
+                        } catch (e: Exception) { null }
                         val clienteDono = wrapperCliente?.response
 
                         val notaCliente = try {
                             val avaliacaoResponse = RetrofitClient.drivezApiService.obterMediaCliente(idClienteLong)
                             avaliacaoResponse.dados.mediaNota.toDoubleOrNull() ?: 5.0
-                        } catch (e: Exception) {
-                            5.0
-                        }
+                        } catch (e: Exception) { 5.0 }
 
                         ClientePedidoDto(
                             pedidoId = pedido.id_pedido?.toLong() ?: 0L,
                             descricaoItem = pedido.descricao ?: "Sem descrição",
                             valorCombustivel = 35.0,
-                            statusPedido = "PENDENTE",
+                            statusPedido = pedido.status ?: "PENDENTE",
                             enderecoOrigem = pedido.endereco_origem ?: "Endereço não informado",
                             clienteId = idClienteLong,
                             nomeCliente = if (!clienteDono?.nome.isNullOrBlank()) clienteDono!!.nome else "Cliente #$idClienteLong",
@@ -107,17 +105,23 @@ class HomePrestadorViewModel : ViewModel() {
     }
 
     fun iniciarMonitoramentoEmergencia(navController: NavController) {
-        // Impede que mais de um loop seja criado ao mesmo tempo
         if (pollingJob?.isActive == true) return
 
-        pollingJob = viewModelScope.launch {
-            while (true) {
+        pollingJob = viewModelScope.launch(Dispatchers.IO) {
+            while (isActive) {
                 try {
                     val pedidosWrapper = RetrofitClient.drivezApiService.obterPedidosPendentes()
                     val lista = pedidosWrapper.response
 
                     val pedidoGuinchoEmergencia = lista.firstOrNull { pedido ->
-                        pedido.descricao?.contains("guincho", ignoreCase = true) == true
+                        val desc = pedido.descricao?.lowercase() ?: ""
+                        val status = pedido.status?.lowercase() ?: ""
+
+                        val eEmergencia = desc.contains("guincho") || desc.contains("emergencia") || desc.contains("socorro")
+
+                        val estaAtivo = status != "concluido" && status != "cancelado"
+
+                        eEmergencia && estaAtivo
                     }
 
                     if (pedidoGuinchoEmergencia != null) {
@@ -128,20 +132,23 @@ class HomePrestadorViewModel : ViewModel() {
                         } catch (e: Exception) { null }
                         val cliente = wrapperCliente?.response
 
-                        emergenciaState = EmergenciaUiState(
-                            idPedido = pedidoGuinchoEmergencia.id_pedido?.toLong() ?: 0L,
-                            nomeCliente = cliente?.nome ?: "Cliente DriveZ #$idCliente",
-                            fotoCliente = cliente?.imgPerfil ?: "",
-                            origem = pedidoGuinchoEmergencia.endereco_origem ?: "Não informada",
-                            destino = pedidoGuinchoEmergencia.endereco_destino ?: "Não informado",
-                            descricao = pedidoGuinchoEmergencia.descricao ?: "Emergência de Guincho",
-                            notaCliente = 4.8
-                        )
+                        withContext(Dispatchers.Main) {
+                            emergenciaState = EmergenciaUiState(
+                                idPedido = pedidoGuinchoEmergencia.id_pedido?.toLong() ?: 0L,
+                                idCliente = pedidoGuinchoEmergencia.id_cliente?.toLong() ?: 0L,
+                                nomeCliente = cliente?.nome ?: "Cliente DriveZ #$idCliente",
+                                fotoCliente = cliente?.imgPerfil ?: "",
+                                origem = pedidoGuinchoEmergencia.endereco_origem ?: "Não informada",
+                                destino = pedidoGuinchoEmergencia.endereco_destino ?: "Não informado",
+                                descricao = pedidoGuinchoEmergencia.descricao ?: "Emergência de Guincho",
+                                notaCliente = 4.8,
+                                isLoading = false
+                            )
 
-                        pararMonitoramentoEmergencia()
+                            pararMonitoramentoEmergencia()
 
-                        navController.navigate("home/prestador/detalhes_solicitacao/emergencia/$idCliente")
-
+                            navController.navigate("home/prestador/detalhes_solicitacao/emergencia/$idCliente")
+                        }
                         break
                     }
                 } catch (e: Exception) {
@@ -165,16 +172,55 @@ class HomePrestadorViewModel : ViewModel() {
     fun aceitarPedidoEmergencia(pedidoId: Long, onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
-                val corpoAtualizacao = mapOf("status" to "EM_ANDAMENTO")
+                val cuerpoActualizacao = mapOf("status" to "em_andamento")
+                println("DriveZ-API-PUT: Tentando aceitar pedido #$pedidoId para EM_ANDAMENTO...")
 
-                RetrofitClient.drivezApiService.atualizarStatusPedido(pedidoId, corpoAtualizacao)
+                val resposta = RetrofitClient.drivezApiService.atualizarStatusPedido(pedidoId, cuerpoActualizacao)
 
-                launch(Dispatchers.Main) {
-                    onSuccess()
+                if (resposta.isSuccessful) {
+                    println("DriveZ-API-PUT-Sucesso Real: Pedido #$pedidoId atualizado para EM_ANDAMENTO na Azure!")
+                    withContext(Dispatchers.Main) {
+                        onSuccess()
+                    }
+                } else {
+                    val mensagemErroApi = resposta.errorBody()?.string()
+                    println("DriveZ-API-PUT-Rejeitado pela Azure (Erro ${resposta.code()}): 👉 $mensagemErroApi")
+
+                    withContext(Dispatchers.Main) { onSuccess() }
                 }
+
             } catch (e: Exception) {
-                println("DriveZ-Erro-Aceitar: Não foi possível atualizar o status -> ${e.message}")
-                launch(Dispatchers.Main) { onSuccess() }
+                println("DriveZ-API-PUT-Erro Rede: Falha catastrófica ao aceitar pedido #$pedidoId. Motivo: ${e.message}")
+                e.printStackTrace()
+                withContext(Dispatchers.Main) { onSuccess() }
+            }
+        }
+    }
+
+    fun concluirPedido(pedidoId: Long, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val corpoAtualizacao = mapOf("status" to "concluido")
+                println("DriveZ-API-PUT: Tentando concluir pedido #$pedidoId na Azure...")
+
+                val resposta = RetrofitClient.drivezApiService.atualizarStatusPedido(pedidoId, corpoAtualizacao)
+
+                if (resposta.isSuccessful) {
+                    println("DriveZ-API-PUT-Sucesso Real: Pedido #$pedidoId CONCLUÍDO com sucesso na Azure!")
+                    withContext(Dispatchers.Main) {
+                        onSuccess()
+                    }
+                } else {
+                    val mensagemErroApi = resposta.errorBody()?.string()
+                    println("DriveZ-API-PUT-Rejeitado pela Azure (Erro ${resposta.code()}): 👉 $mensagemErroApi")
+
+                    withContext(Dispatchers.Main) { onSuccess() }
+                }
+
+            } catch (e: Exception) {
+                println("DriveZ-API-PUT-Erro Rede: Falha catastrófica ao concluir pedido #$pedidoId. Motivo: ${e.message}")
+                e.printStackTrace()
+                withContext(Dispatchers.Main) { onSuccess() }
             }
         }
     }

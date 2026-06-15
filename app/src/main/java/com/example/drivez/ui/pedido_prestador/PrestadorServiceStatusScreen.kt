@@ -1,5 +1,6 @@
 package com.example.drivez.ui.pedido_prestador
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -22,9 +23,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.drivez.BuildConfig
 import com.example.drivez.R
+import com.example.drivez.core.network.RetrofitClient
 import com.example.drivez.core.network.theme.AppColors
 import com.example.drivez.ui.components.AddressTimeline
 import com.example.drivez.ui.components.CardConfirmacao
+import com.example.drivez.ui.home_prestador.HomePrestadorViewModel
 import com.mapbox.geojson.Point
 import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.MapView
@@ -35,6 +38,8 @@ import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -44,17 +49,19 @@ import java.net.URLEncoder
 @Composable
 fun PrestadorServiceStatusScreen(
     navController: NavController,
-    userId: String,
-    isSOS: Boolean,
-    // AGORA RECEBE TEXTO TEXTO PURO (STRINGS) DA VEZ DA AZURE
+    pedidoId: Long,
+    clienteNome: String,
+    clienteFotoUrl: String,
     enderecoOrigemTexto: String,
-    enderecoDestinoTexto: String
+    enderecoDestinoTexto: String,
+    viewModel: HomePrestadorViewModel
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    var cardState by remember { mutableStateOf(false) }
 
-    // Estados para controlar o fluxo de tradução Geocoding -> Directions -> Desenho
+    var cardState by remember { mutableStateOf(false) }
+    var statusDoPedidoLocal by remember { mutableStateOf("EM_ANDAMENTO") }
+
     var pontosDaRotaDinamica by remember { mutableStateOf<List<Point>>(emptyList()) }
     var isMapStyleLoaded by remember { mutableStateOf(false) }
     var isLoadingRota by remember { mutableStateOf(true) }
@@ -62,123 +69,92 @@ fun PrestadorServiceStatusScreen(
     val mapView = remember { MapView(context) }
     val token = remember { BuildConfig.MAPBOX_TOKEN }
 
-    // FUNÇÃO AUXILIAR DE GEOCODING (Igual ao forwardGeocode do seu JS)
-    suspend fun obterCoordenadasDoEndereco(address: String): Point? {
-        return withContext(Dispatchers.IO) {
+    // Estado para recuperar o id_cliente vindo do estado de emergência do seu ViewModel
+    val idCliente = viewModel.emergenciaState.idPedido // Usa o estado global mapeado no polling
+
+    LaunchedEffect(pedidoId) {
+        while (statusDoPedidoLocal == "EM_ANDAMENTO") {
+            delay(4000)
             try {
-                val urlEncoded = URLEncoder.encode(address, "UTF-8")
-                val urlStr = "https://api.mapbox.com/geocoding/v5/mapbox.places/$urlEncoded.json" +
-                        "?access_token=$token&country=br&limit=1"
+                val resposta = RetrofitClient.drivezApiService.obterPedidosPendentes()
+                val pedidoNoBanco = resposta.response.firstOrNull { it.id_pedido?.toLong() == pedidoId }
 
-                val connection = URL(urlStr).openConnection() as HttpURLConnection
-                val responseText = connection.inputStream.bufferedReader().use { it.readText() }
-
-                val jsonObject = JSONObject(responseText)
-                val features = jsonObject.getJSONArray("features")
-
-                if (features.length() > 0) {
-                    val firstResult = features.getJSONObject(0)
-                    val centerArray = firstResult.getJSONArray("center")
-                    val lng = centerArray.getDouble(0)
-                    val lat = centerArray.getDouble(1)
-                    Point.fromLngLat(lng, lat)
-                } else null
+                if (pedidoNoBanco == null || pedidoNoBanco.status?.lowercase() == "cancelado") {
+                    statusDoPedidoLocal = "CANCELADO"
+                    break
+                }
             } catch (e: Exception) {
-                e.printStackTrace()
-                null
+                println("DriveZ-Sincronismo: Monitorando status do pedido #$pedidoId...")
             }
         }
     }
 
-    // FLUXO PRINCIPAL ASSÍNCRONO: Executa o Geocoding duplo e depois busca o Trajeto de Ruas
+    suspend fun obterCoordenadasDoEndereco(address: String): Point? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val urlEncoded = URLEncoder.encode(address, "UTF-8")
+                val urlStr = "https://api.mapbox.com/geocoding/v5/mapbox.places/$urlEncoded.json?access_token=$token&country=br&limit=1"
+                val connection = URL(urlStr).openConnection() as HttpURLConnection
+                val responseText = connection.inputStream.bufferedReader().use { it.readText() }
+                val jsonObject = JSONObject(responseText)
+                val features = jsonObject.getJSONArray("features")
+                if (features.length() > 0) {
+                    val centerArray = features.getJSONObject(0).getJSONArray("center")
+                    Point.fromLngLat(centerArray.getDouble(0), centerArray.getDouble(1))
+                } else null
+            } catch (e: Exception) { null }
+        }
+    }
+
     LaunchedEffect(enderecoOrigemTexto, enderecoDestinoTexto) {
         isLoadingRota = true
-
-        // 1. Converte Texto de Origem em Coordenadas Matemáticas
         val pontoOrigem = obterCoordenadasDoEndereco(enderecoOrigemTexto)
-        // 2. Converte Texto de Destino em Coordenadas Matemáticas
         val pontoDestino = obterCoordenadasDoEndereco(enderecoDestinoTexto)
 
         if (pontoOrigem != null && pontoDestino != null) {
-            // 3. Com os pontos criados com sucesso, busca as ruas da API de Directions
             withContext(Dispatchers.IO) {
                 try {
-                    val urlStr = "https://api.mapbox.com/directions/v5/mapbox/driving/" +
-                            "${pontoOrigem.longitude()},${pontoOrigem.latitude()};" +
-                            "${pontoDestino.longitude()},${pontoDestino.latitude()}" +
-                            "?geometries=geojson&overview=full&access_token=$token"
-
+                    val urlStr = "https://api.mapbox.com/directions/v5/mapbox/driving/${pontoOrigem.longitude()},${pontoOrigem.latitude()};${pontoDestino.longitude()},${pontoDestino.latitude()}?geometries=geojson&overview=full&access_token=$token"
                     val connection = URL(urlStr).openConnection() as HttpURLConnection
                     val responseText = connection.inputStream.bufferedReader().use { it.readText() }
-
                     val jsonObject = JSONObject(responseText)
                     val routes = jsonObject.getJSONArray("routes")
-
                     if (routes.length() > 0) {
                         val coordinates = routes.getJSONObject(0).getJSONObject("geometry").getJSONArray("coordinates")
-                        val listaCoordenadasConstruida = mutableListOf<Point>()
-
+                        val lista = mutableListOf<Point>()
                         for (i in 0 until coordinates.length()) {
                             val coordArray = coordinates.getJSONArray(i)
-                            listaCoordenadasConstruida.add(Point.fromLngLat(coordArray.getDouble(0), coordArray.getDouble(1)))
+                            lista.add(Point.fromLngLat(coordArray.getDouble(0), coordArray.getDouble(1)))
                         }
-
                         withContext(Dispatchers.Main) {
-                            pontosDaRotaDinamica = listaCoordenadasConstruida
+                            pontosDaRotaDinamica = lista
                             isLoadingRota = false
                         }
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    isLoadingRota = false
-                }
+                } catch (e: Exception) { isLoadingRota = false }
             }
-        } else {
-            isLoadingRota = false
-        }
+        } else { isLoadingRota = false }
     }
 
     LaunchedEffect(mapView) {
         mapView.mapboxMap.loadStyle(Style.MAPBOX_STREETS) { isMapStyleLoaded = true }
     }
 
-    // Monitora e desenha a rota na tela assim que os cálculos de Geocoding e Trajeto terminam
     LaunchedEffect(pontosDaRotaDinamica, isMapStyleLoaded) {
         if (pontosDaRotaDinamica.isNotEmpty() && isMapStyleLoaded) {
             val annotationApi = mapView.annotations
-
-            // Desenha a Rota Premium (Casing + Linha principal)
             val polylineAnnotationManager = annotationApi.createPolylineAnnotationManager()
             polylineAnnotationManager.deleteAll()
 
-            polylineAnnotationManager.create(
-                PolylineAnnotationOptions()
-                    .withPoints(pontosDaRotaDinamica)
-                    .withLineColor("#FFFFFF").withLineWidth(9.0).withLineOpacity(0.7)
-            )
-            polylineAnnotationManager.create(
-                PolylineAnnotationOptions()
-                    .withPoints(pontosDaRotaDinamica)
-                    .withLineColor("#DC2626").withLineWidth(5.0).withLineOpacity(1.0)
-            )
+            polylineAnnotationManager.create(PolylineAnnotationOptions().withPoints(pontosDaRotaDinamica).withLineColor("#FFFFFF").withLineWidth(9.0).withLineOpacity(0.7))
+            polylineAnnotationManager.create(PolylineAnnotationOptions().withPoints(pontosDaRotaDinamica).withLineColor("#DC2626").withLineWidth(5.0).withLineOpacity(1.0))
 
-            // Desenha os Pins nos extremos calculados
             val pointAnnotationManager = annotationApi.createPointAnnotationManager()
             pointAnnotationManager.deleteAll()
+            pointAnnotationManager.create(PointAnnotationOptions().withPoint(pontosDaRotaDinamica.first()).withIconColor("#2563EB").withIconSize(1.3))
+            pointAnnotationManager.create(PointAnnotationOptions().withPoint(pontosDaRotaDinamica.last()).withIconColor("#DC2626").withIconSize(1.3))
 
-            pointAnnotationManager.create(
-                PointAnnotationOptions().withPoint(pontosDaRotaDinamica.first()).withIconColor("#2563EB").withIconSize(1.3)
-            )
-            pointAnnotationManager.create(
-                PointAnnotationOptions().withPoint(pontosDaRotaDinamica.last()).withIconColor("#DC2626").withIconSize(1.3)
-            )
-
-            // Centraliza o enquadramento do mapa
-            val cameraOptions = mapView.mapboxMap.cameraForCoordinates(
-                coordinates = pontosDaRotaDinamica,
-                coordinatesPadding = EdgeInsets(120.0, 100.0, 400.0, 100.0),
-                bearing = 0.0, pitch = 0.0
-            )
+            val cameraOptions = mapView.mapboxMap.cameraForCoordinates(pontosDaRotaDinamica, EdgeInsets(120.0, 100.0, 400.0, 100.0), 0.0, 0.0)
             mapView.mapboxMap.setCamera(cameraOptions)
         }
     }
@@ -199,36 +175,50 @@ fun PrestadorServiceStatusScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize())
 
-        // Exibe um indicador discreto enquanto faz a geocodificação em segundo plano
         if (isLoadingRota) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color = Color(0xFF1A237E)
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color(0xFF1A237E))
+        }
+
+        if (statusDoPedidoLocal == "CANCELADO") {
+            AlertDialog(
+                onDismissRequest = { },
+                confirmButton = {
+                    Button(
+                        onClick = { navController.navigate("home/prestador") { popUpTo(0) } },
+                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.PrimaryRed)
+                    ) { Text("Voltar ao Início", color = Color.White) }
+                },
+                title = { Text("Corrida Cancelada", fontWeight = FontWeight.Bold, color = Color.Red) },
+                text = { Text("O cliente cancelou este chamado de socorro mecânico.") }
             )
         }
 
         IconButton(
             onClick = { cardState = true },
-            modifier = Modifier
-                .padding(top = 24.dp, start = 16.dp)
-                .align(Alignment.TopStart)
-                .background(Color.White, CircleShape)
-                .size(45.dp)
+            modifier = Modifier.padding(top = 24.dp, start = 16.dp).align(Alignment.TopStart).background(Color.White, CircleShape).size(45.dp)
         ) {
-            Icon(
-                painter = painterResource(R.drawable.baseline_arrow_back_24),
-                contentDescription = "Voltar",
-                tint = AppColors.DarkBlue,
-                modifier = Modifier.size(28.dp)
-            )
+            Icon(painter = painterResource(R.drawable.baseline_arrow_back_24), contentDescription = "Voltar", tint = AppColors.DarkBlue, modifier = Modifier.size(28.dp))
         }
 
         CardPedidoEmAndamentoPrestador(
             origem = enderecoOrigemTexto,
             destino = enderecoDestinoTexto,
             modifier = Modifier.align(Alignment.BottomCenter),
+            onChatClick = {
+                val idPedidoAtual = viewModel.emergenciaState.idPedido
+                val nomeParam = Uri.encode(clienteNome)
+                navController.navigate("chat_descartavel/$idPedidoAtual/$nomeParam")
+            },
             onConcluirClick = {
-                navController.navigate("home/prestador/avaliacao")
+                viewModel.concluirPedido(pedidoId) {
+                    statusDoPedidoLocal = "CONCLUIDO"
+                    val nomeParam = Uri.encode(clienteNome)
+                    val fotoParam = Uri.encode(clienteFotoUrl)
+
+                    navController.navigate("home/prestador/avaliacao/$pedidoId/$nomeParam/$fotoParam") {
+                        popUpTo("home/prestador") { inclusive = false }
+                    }
+                }
             }
         )
     }
@@ -251,6 +241,7 @@ fun CardPedidoEmAndamentoPrestador(
     origem: String,
     destino: String,
     modifier: Modifier = Modifier,
+    onChatClick: () -> Unit,
     onConcluirClick: () -> Unit
 ) {
     Card(
@@ -267,17 +258,40 @@ fun CardPedidoEmAndamentoPrestador(
                 .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Atendimento em Andamento",
-                fontWeight = FontWeight.Bold,
-                color = AppColors.DarkBlue,
-                fontSize = 20.sp,
-                textAlign = TextAlign.Center
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Spacer(modifier = Modifier.width(48.dp))
+
+                Text(
+                    text = "Atendimento Ativo",
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.DarkBlue,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f)
+                )
+
+                FilledIconButton(
+                    onClick = onChatClick,
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = Color(0xFF0F2042),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier.size(44.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_chat_bubble_24),
+                        contentDescription = "Chat Rápido",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Exibe os endereços do chamado mapeado na rota
             AddressTimeline(
                 origin = origem,
                 destination = destino
@@ -291,7 +305,7 @@ fun CardPedidoEmAndamentoPrestador(
                     .fillMaxWidth()
                     .height(52.dp)
                     .padding(horizontal = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)), // Verde sucesso
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
                 shape = RoundedCornerShape(14.dp)
             ) {
                 Text(

@@ -2,16 +2,16 @@ package com.example.drivez.core.network
 
 import com.example.drivez.data.dto.ApiResponseAvaliacao
 import com.example.drivez.data.dto.ApiResponseWrapper
-import com.example.drivez.data.dto.ClienteResponseDto
 import com.example.drivez.data.dto.ClienteResponseWrapper
-import com.example.drivez.data.dto.PedidoResponseDto
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.PATCH
+import retrofit2.http.Headers
+import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.Response
 
 interface DrivezApiService {
-    @GET("pedidos") // Mantém o seu endpoint normal
+    @GET("pedidos")
     suspend fun obterPedidosPendentes(): ApiResponseWrapper
 
     @GET("cliente/{id}")
@@ -22,9 +22,10 @@ interface DrivezApiService {
         @Path("idCliente") idCliente: Long
     ): ApiResponseAvaliacao
 
-    @PATCH("pedidos/{id}")
+    @Headers("Content-Type: application/json")
+    @PUT("pedido/{id}/status")
     suspend fun atualizarStatusPedido(
-        @Path("id") pedidoId: Long,
-        @Body body: Map<String, String>
-    )
+        @Path("id") idPedido: Long,
+        @Body status: Map<String, String>
+    ): Response<Void>
 }
