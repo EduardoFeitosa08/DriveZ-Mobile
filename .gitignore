@@ -13,4 +13,5 @@
 .externalNativeBuild
 .cxx
 /local.properties
-/EnvConfig
+EnvConfig.kt
+google-services.json
